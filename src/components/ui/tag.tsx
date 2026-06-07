@@ -11,6 +11,7 @@ interface TagProps {
   size?: TagSize;
   icon?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const toneStyles: Record<TagTone, string> = {
@@ -21,9 +22,10 @@ const toneStyles: Record<TagTone, string> = {
   solid: "bg-[var(--ink)] text-[var(--surface)]",
 };
 
-export function Tag({ children, tone = "neutral", size = "md", icon, className }: TagProps) {
+export function Tag({ children, tone = "neutral", size = "md", icon, className, style }: TagProps) {
   return (
     <span
+      style={style}
       className={cn(
         "inline-flex items-center gap-1 rounded-full font-semibold tracking-[-0.01em] whitespace-nowrap",
         size === "sm" ? "px-[9px] py-[3px] text-[11.5px]" : "px-[11px] py-[5px] text-[12.5px]",
