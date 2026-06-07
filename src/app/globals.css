@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Google Fonts ──────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* ── Design Tokens — Warm (default) ──────────────────────────────────── */
+:root,
+[data-brand="warm"] {
+  --bg:           #ebe5d9;
+  --surface:      #fffdf8;
+  --surface-2:    #f5efe4;
+  --surface-3:    #efe8da;
+  --ink:          #211f1a;
+  --ink-2:        #5a544a;
+  --ink-3:        #8b8273;
+  --line:         #e3dccd;
+  --line-2:       #eee7d9;
+  --primary:      #38462f;
+  --primary-ink:  #f5f2ea;
+  --accent:       #b46a40;
+  --accent-soft:  #f3e4d6;
+  --accent-ink:   #fff;
+  --good:         #4f7a4f;
+  --good-soft:    #e4ecdf;
+  --warn:         #b3812f;
+  --warn-soft:    #f3e7cf;
+  --hero-num:     #b46a40;
+  --sidebar:      linear-gradient(160deg, #272c23, #1e221b);
+  --sidebar-bg:   #23271f;
+  --sidebar-ink:  #d9d3c5;
+  --sidebar-muted:#8d877a;
+  --sidebar-active: rgba(255,255,255,.07);
+}
+
+/* ── Design Tokens — Navy ─────────────────────────────────────────────── */
+[data-brand="navy"] {
+  --bg:           #eef1f6;
+  --surface:      #ffffff;
+  --surface-2:    #f5f7fa;
+  --surface-3:    #eef2f7;
+  --ink:          #121a2c;
+  --ink-2:        #56607a;
+  --ink-3:        #8a93a7;
+  --line:         #e4e9f1;
+  --line-2:       #eef1f7;
+  --primary:      #2563eb;
+  --primary-ink:  #fff;
+  --accent:       #2563eb;
+  --accent-soft:  #e2ecff;
+  --accent-ink:   #fff;
+  --good:         #16a34a;
+  --good-soft:    #dcf3e4;
+  --warn:         #d18a1b;
+  --warn-soft:    #fef3cd;
+  --hero-num:     #2563eb;
+  --sidebar:      linear-gradient(160deg, #16203a, #0f1626);
+  --sidebar-bg:   #121a2c;
+  --sidebar-ink:  #d4dbe8;
+  --sidebar-muted:#7c8699;
+  --sidebar-active: rgba(255,255,255,.07);
+}
+
+/* ── Design Tokens — Clay ─────────────────────────────────────────────── */
+[data-brand="clay"] {
+  --bg:           #ece3da;
+  --surface:      #fffaf5;
+  --surface-2:    #f5ece1;
+  --surface-3:    #ede2d4;
+  --ink:          #2a201a;
+  --ink-2:        #5e4e44;
+  --ink-3:        #8e7e73;
+  --line:         #e7d9cb;
+  --line-2:       #eedfd2;
+  --primary:      #b4471f;
+  --primary-ink:  #fff;
+  --accent:       #c0743a;
+  --accent-soft:  #f4e0cf;
+  --accent-ink:   #fff;
+  --good:         #5d7a45;
+  --good-soft:    #e3ecd8;
+  --warn:         #b37a2f;
+  --warn-soft:    #f4e6c8;
+  --hero-num:     #b4471f;
+  --sidebar:      linear-gradient(160deg, #41281c, #311e15);
+  --sidebar-bg:   #3a241a;
+  --sidebar-ink:  #e0d0c4;
+  --sidebar-muted:#9a8070;
+  --sidebar-active: rgba(255,255,255,.07);
+}
+
+/* ── Shape / Shadow Tokens ────────────────────────────────────────────── */
+:root {
+  --radius:    16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 1px 2px rgba(40,34,24,.05), 0 1px 3px rgba(40,34,24,.06);
+  --shadow-md: 0 4px 14px rgba(40,34,24,.07);
+  --shadow-lg: 0 18px 50px rgba(40,34,24,.16);
+  --font-serif: "Newsreader", Georgia, serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: "Schibsted Grotesk", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+/* ── Typography utilities ─────────────────────────────────────────────── */
+.serif {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Entrance animation ───────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Respect prefers-reduced-motion: keep content visible, no opacity gating */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+
+/* ── Focus visible ──────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Button base ────────────────────────────────────────────────────────── */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ── Dashboard sidebar ──────────────────────────────────────────────────── */
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  color: var(--sidebar-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--sidebar-active);
+  color: var(--sidebar-ink);
+}
+
+.sidebar-nav-item.active {
+  background: var(--sidebar-active);
+  color: #fff;
+}
+
+.sidebar-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 22px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── Safe-area helpers (iOS bottom nav) ────────────────────────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Horizontal scroll snapping ────────────────────────────────────────── */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+}
+
+/* ── Progress ring animation ─────────────────────────────────────────── */
+.ring-fill {
+  transition: stroke-dashoffset 1s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* ── Card hover ──────────────────────────────────────────────────────── */
+.card-hover {
+  transition: transform 0.16s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Message bubbles ─────────────────────────────────────────────────── */
+.bubble-me {
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-radius: 18px 18px 4px 18px;
+}
+
+.bubble-advisor {
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 18px 18px 18px 4px;
+  border: 1px solid var(--line);
+}

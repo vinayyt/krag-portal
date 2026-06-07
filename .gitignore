@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Prisma
+prisma/migrations/
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+
+# Misc
+.DS_Store
+*.pem
+.vercel
+*.log
+npm-debug.log*

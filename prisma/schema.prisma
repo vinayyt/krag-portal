@@ -1,0 +1,309 @@
+// ── Krag Portal — Prisma Schema ─────────────────────────────────────────────
+// Database: PostgreSQL
+// ORM:      Prisma 5
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  phone         String?
+  locale        String    @default("nb")
+  passwordHash  String?
+  bankIdSub     String?   @unique
+  vippsSub      String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  buyer         Buyer?
+  sessions      Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Core domain ─────────────────────────────────────────────────────────────
+
+model Project {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  nameNo      String
+  placeNo     String
+  placeEn     String
+  typeKey     String    // "house" | "cabin" | "town" | "duplex"
+  typeNo      String
+  typeEn      String
+  priceFrom   Int
+  sizeFrom    Int
+  sizeTo      Int
+  bedrooms    String
+  statusNo    String
+  statusEn    String
+  tone        String    // ImageBox tone
+  blurbNo     String
+  blurbEn     String
+  tagsNo      String[]
+  tagsEn      String[]
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  units       ProjectUnit[]
+  buyers      Buyer[]
+}
+
+model ProjectUnit {
+  id          String   @id @default(cuid())
+  projectId   String
+  label       String   // e.g. "B7"
+  size        Int      // m²
+  bedrooms    Int
+  featureNo   String?
+  featureEn   String?
+  price       Int
+  reserved    Boolean  @default(false)
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  buyers      Buyer[]
+}
+
+model Buyer {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  projectId   String
+  unitId      String?
+  advisorId   String
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project      @relation(fields: [projectId], references: [id])
+  unit        ProjectUnit? @relation(fields: [unitId], references: [id])
+  advisor     Advisor      @relation(fields: [advisorId], references: [id])
+
+  phases      Phase[]
+  payments    Payment[]
+  documents   Document[]
+  photoAlbums PhotoAlbum[]
+  messages    Message[]
+  choiceGroups ChoiceGroup[]
+  meetings    Meeting[]
+  inspections Inspection[]
+  notifications Notification[]
+  aiMessages  AiMessage[]
+}
+
+model Advisor {
+  id        String   @id @default(cuid())
+  name      String
+  roleNo    String
+  roleEn    String
+  phone     String
+  email     String   @unique
+  initials  String
+
+  buyers    Buyer[]
+  messages  Message[]
+  meetings  Meeting[]
+}
+
+// ─── Build phases & progress ──────────────────────────────────────────────────
+
+model Phase {
+  id       String  @id @default(cuid())
+  buyerId  String
+  slug     String  // e.g. "foundation"
+  nameNo   String
+  nameEn   String
+  pct      Int     @default(0)
+  status   String  @default("upcoming") // "done" | "active" | "upcoming"
+  dateNo   String
+  dateEn   String
+  sortOrder Int    @default(0)
+
+  buyer    Buyer   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
+
+// ─── Budget & payments ────────────────────────────────────────────────────────
+
+model Payment {
+  id       Int     @id @default(autoincrement())
+  buyerId  String
+  labelNo  String
+  labelEn  String
+  amount   Int
+  pct      String  // e.g. "10%"
+  status   String  @default("upcoming") // "paid" | "upcoming"
+  dateNo   String
+  dateEn   String
+
+  buyer    Buyer   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
+
+// ─── Documents ───────────────────────────────────────────────────────────────
+
+model Document {
+  id       Int     @id @default(autoincrement())
+  buyerId  String
+  nameNo   String
+  nameEn   String
+  cat      String  // "contract" | "drawing" | "spec"
+  dateNo   String
+  dateEn   String
+  size     String
+  signed   Boolean?  // true=signed, false=needs-signature, null=n-a
+  soon     Boolean   @default(false)
+  fileUrl  String?   // signed URL to object storage
+
+  buyer    Buyer   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
+
+// ─── Photos ──────────────────────────────────────────────────────────────────
+
+model PhotoAlbum {
+  id        String   @id @default(cuid())
+  buyerId   String
+  phaseNo   String
+  phaseEn   String
+  dateNo    String
+  dateEn    String
+  tone      String
+  count     Int      @default(0)
+
+  buyer     Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  photos    Photo[]
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  albumId   String
+  url       String
+  thumbUrl  String?
+  caption   String?
+  takenAt   DateTime @default(now())
+
+  album     PhotoAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+}
+
+// ─── Messages ────────────────────────────────────────────────────────────────
+
+model Message {
+  id        String   @id @default(cuid())
+  buyerId   String
+  advisorId String
+  from      String   // "me" | "advisor"
+  textNo    String
+  textEn    String
+  time      String   // display time HH:MM
+  dateNo    String
+  dateEn    String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  buyer     Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  advisor   Advisor  @relation(fields: [advisorId], references: [id])
+}
+
+// ─── Choices / Add-ons ────────────────────────────────────────────────────────
+
+model ChoiceGroup {
+  id              String        @id @default(cuid())
+  buyerId         String
+  nameNo          String
+  nameEn          String
+  deadlineNo      String
+  deadlineEn      String
+  deadlinePassed  Boolean       @default(false)
+  sortOrder       Int           @default(0)
+
+  buyer           Buyer         @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  options         ChoiceOption[]
+}
+
+model ChoiceOption {
+  id       String      @id @default(cuid())
+  groupId  String
+  nameNo   String
+  nameEn   String
+  price    Int         @default(0)
+  selected Boolean     @default(false)
+  tone     String      @default("indoor")
+
+  group    ChoiceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+// ─── Meetings & inspections ───────────────────────────────────────────────────
+
+model Meeting {
+  id        Int      @id @default(autoincrement())
+  buyerId   String
+  advisorId String
+  titleNo   String
+  titleEn   String
+  typeNo    String
+  typeEn    String
+  dateNo    String
+  dateEn    String
+  time      String
+  online    Boolean  @default(false)
+  status    String   @default("upcoming") // "upcoming" | "past"
+
+  buyer     Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  advisor   Advisor  @relation(fields: [advisorId], references: [id])
+}
+
+model Inspection {
+  id       Int      @id @default(autoincrement())
+  buyerId  String
+  titleNo  String
+  titleEn  String
+  dateNo   String
+  dateEn   String
+  time     String
+  status   String   @default("upcoming") // "upcoming" | "done"
+  noteNo   String   @default("")
+  noteEn   String   @default("")
+
+  buyer    Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id       Int      @id @default(autoincrement())
+  buyerId  String
+  icon     String
+  textNo   String
+  textEn   String
+  timeNo   String
+  timeEn   String
+  unread   Boolean  @default(true)
+
+  buyer    Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
+
+// ─── AI conversation log ──────────────────────────────────────────────────────
+
+model AiMessage {
+  id        String   @id @default(cuid())
+  buyerId   String
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+
+  buyer     Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
