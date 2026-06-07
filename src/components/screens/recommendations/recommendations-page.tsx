@@ -172,7 +172,7 @@ export function RecommendationsPage() {
                     >
                       {t("why")}
                     </div>
-                    {pick(top.why, locale).slice(0, 3).map((reason: string, i: number) => (
+                    {(top.why[locale as keyof typeof top.why] ?? top.why.no).slice(0, 3).map((reason: string, i: number) => (
                       <div
                         key={i}
                         style={{
