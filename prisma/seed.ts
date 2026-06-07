@@ -127,7 +127,8 @@ async function main() {
     { labelNo: "Overtakelse",            labelEn: "Handover / completion",  amount: 2_146_000, pct: "39%", status: "upcoming", dateNo: "Jun 2026",  dateEn: "Jun 2026"  },
   ];
 
-  for (const [i, p] of payments.entries()) {
+  for (let i = 0; i < payments.length; i++) {
+    const p = payments[i];
     await prisma.payment.upsert({
       where: { id: i + 1 },
       update: { status: p.status },
@@ -146,7 +147,8 @@ async function main() {
     { nameNo: "Overtakelsesprotokoll",         nameEn: "Handover protocol",              cat: "contract", dateNo: "Jun 2026",     dateEn: "Jun 2026",    size: "—",      signed: false, soon: true },
   ];
 
-  for (const [i, d] of documents.entries()) {
+  for (let i = 0; i < documents.length; i++) {
+    const d = documents[i];
     await prisma.document.upsert({
       where: { id: i + 1 },
       update: {},
