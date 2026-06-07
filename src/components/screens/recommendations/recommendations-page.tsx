@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -16,6 +16,14 @@ import { Logo } from "@/components/ui/logo";
 import type { QuestionAnswers } from "@/types";
 
 export function RecommendationsPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+      <RecommendationsPageContent />
+    </Suspense>
+  );
+}
+
+function RecommendationsPageContent() {
   const locale = useLocale();
   const t = useTranslations("recommendations");
   const searchParams = useSearchParams();

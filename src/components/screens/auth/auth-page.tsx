@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -10,6 +10,14 @@ import { Icon } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/logo";
 
 export function AuthPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh" }} />}>
+      <AuthPageContent />
+    </Suspense>
+  );
+}
+
+function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
