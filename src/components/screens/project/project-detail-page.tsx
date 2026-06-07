@@ -75,9 +75,11 @@ export function ProjectDetailPage({ projectId }: { projectId: string }) {
           }}
         >
           {project.match && (
-            <Tag tone="solid" style={{ alignSelf: "flex-start" }}>
-              {project.match}% match
-            </Tag>
+            <span style={{ alignSelf: "flex-start" }}>
+              <Tag tone="solid">
+                {project.match}% match
+              </Tag>
+            </span>
           )}
           <div style={{ fontSize: 13, color: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", gap: 5 }}>
             <Icon name="pin" size={13} />
