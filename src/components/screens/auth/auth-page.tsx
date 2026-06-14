@@ -37,16 +37,16 @@ function AuthPageContent() {
     setLoading(true);
     // Stub: simulate network delay then route
     await new Promise((r) => setTimeout(r, 600));
-    router.push(isCreate ? `/${locale}/questionnaire` : `/${locale}/dashboard`);
+    router.push(isCreate ? `/${locale}/start` : `/${locale}/dashboard`);
   }
 
   function handleBankID() {
     // Phase 3: real BankID OIDC — for now simulate
-    router.push(isCreate ? `/${locale}/questionnaire` : `/${locale}/dashboard`);
+    router.push(isCreate ? `/${locale}/start` : `/${locale}/dashboard`);
   }
 
   function handleVipps() {
-    router.push(isCreate ? `/${locale}/questionnaire` : `/${locale}/dashboard`);
+    router.push(isCreate ? `/${locale}/start` : `/${locale}/dashboard`);
   }
 
   return (

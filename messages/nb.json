@@ -428,5 +428,22 @@
     "label": "Dine prosjekter",
     "newbuild_sub": "Nybygg · Bolig B7",
     "reno_sub": "Totalrenovering"
+  },
+  "start": {
+    "heading": "Hva slags prosjekt har du?",
+    "sub": "Vi tilpasser portalen til akkurat din situasjon.",
+    "build_title": "Nybygg",
+    "build_sub": "Jeg kjøper eller bygger en helt ny bolig",
+    "build_feat1": "Oppfølging gjennom hele byggeprosessen",
+    "build_feat2": "Fremdrift, dokumenter og valg samlet",
+    "build_feat3": "Direkte kontakt med din prosjektleder",
+    "build_cta": "Start nybygg-reise",
+    "reno_title": "Renovering",
+    "reno_sub": "Jeg pusser opp en eksisterende bolig",
+    "reno_feat1": "Rombasert planlegging og oppfølging",
+    "reno_feat2": "Avvik, materialer og budsjett i orden",
+    "reno_feat3": "Håndverkere og PM i ett sted",
+    "reno_cta": "Start renoveringsreise",
+    "popular": "Mest valgt"
   }
 }

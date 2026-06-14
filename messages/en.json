@@ -428,5 +428,22 @@
     "label": "Your projects",
     "newbuild_sub": "New build · Home B7",
     "reno_sub": "Full renovation"
+  },
+  "start": {
+    "heading": "What kind of project do you have?",
+    "sub": "We tailor the portal to your exact situation.",
+    "build_title": "New build",
+    "build_sub": "I'm buying or building a brand-new home",
+    "build_feat1": "Full follow-up throughout the build process",
+    "build_feat2": "Progress, documents and choices in one place",
+    "build_feat3": "Direct contact with your project manager",
+    "build_cta": "Start new-build journey",
+    "reno_title": "Renovation",
+    "reno_sub": "I'm renovating an existing home",
+    "reno_feat1": "Room-by-room planning and follow-up",
+    "reno_feat2": "Deviations, materials and budget under control",
+    "reno_feat3": "Tradespeople and PM in one place",
+    "reno_cta": "Start renovation journey",
+    "popular": "Most popular"
   }
 }
