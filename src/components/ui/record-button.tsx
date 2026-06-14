@@ -145,13 +145,18 @@ export function RecordButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transcript, meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale }),
       });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setSummary(data.summary);
+      const data = await res.json().catch(() => ({})) as Record<string, string>;
+      if (!res.ok) {
+        const detail = data.detail || data.error || `HTTP ${res.status}`;
+        throw new Error(detail);
+      }
+      setSummary((data as unknown as { summary: MeetingSummary }).summary);
       setState("done");
     } catch (e) {
       setState("error");
-      setErrMsg(isNb ? "Noe gikk galt. Sjekk API-nøkler og prøv igjen." : "Something went wrong. Check API keys and try again.");
+      const msg = e instanceof Error ? e.message : String(e);
+      // Show the real error so it's easy to diagnose
+      setErrMsg(msg.length < 120 ? msg : (isNb ? "Noe gikk galt — sjekk nettleser-konsollen for detaljer." : "Something went wrong — check the browser console for details."));
       console.error("[RecordButton]", e);
     }
   }, [finalText, meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale, isNb]);
