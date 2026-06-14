@@ -8,6 +8,7 @@ interface ProgressBarProps {
   color?: string;
   track?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export function ProgressBar({
@@ -16,6 +17,7 @@ export function ProgressBar({
   color = "var(--accent)",
   track = "var(--surface-3)",
   className,
+  style,
 }: ProgressBarProps) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
@@ -27,6 +29,7 @@ export function ProgressBar({
         background: track,
         borderRadius: 999,
         overflow: "hidden",
+        ...style,
       }}
       role="progressbar"
       aria-valuenow={clamped}

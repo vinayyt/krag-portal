@@ -24,6 +24,14 @@ import type {
   Update,
   Floor,
   ProjectUnit,
+  RenovationProject,
+  Avvik,
+  RenovationRoom,
+  MaterialGroup,
+  RenovationBudget,
+  OnSiteToday,
+  RenovationService,
+  IntakeQuestion,
 } from "@/types";
 
 // ─── Projects (inventory) ─────────────────────────────────────────────────────
@@ -1065,4 +1073,301 @@ export const AI_SUGGESTIONS = {
     "When do I choose the kitchen?",
     "What interior work remains?",
   ],
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENOVATION TRACK — "Min oppussing"
+// Demo household: Kari & Anders Tvedt, Vesterveien 8, Lund, Kristiansand
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const RENO_PM = {
+  name: "Tom Eide",
+  role: { no: "Prosjektleder, Krag Gruppen", en: "Project manager, Krag Gruppen" },
+  phone: "94 18 52 30",
+  email: "tom@kraggruppen.no",
+  initials: "TE",
+};
+
+export const RENO_BUYER = {
+  name: "Kari",
+  fullName: "Kari & Anders Tvedt",
+  initials: "KT",
+};
+
+export const RENO_PROJECT: RenovationProject = {
+  id: "vesterveien",
+  name: { no: "Totalrenovering", en: "Full renovation" },
+  addressShort: "Vesterveien 8",
+  place: { no: "Lund, Kristiansand", en: "Lund, Kristiansand" },
+  address: { no: "Vesterveien 8, 4630 Kristiansand", en: "Vesterveien 8, 4630 Kristiansand" },
+  built: 1973,
+  area: 162,
+  addArea: 28,
+  type: { no: "Enebolig · totalrenovering + tilbygg", en: "Detached · full renovation + extension" },
+  scope: { no: "Ny planløsning, tilbygg, 2 bad, ny fasade & tak", en: "New layout, extension, 2 baths, new façade & roof" },
+  progress: 48,
+  start: { no: "Januar 2026", en: "January 2026" },
+  handover: { no: "November 2026", en: "November 2026" },
+};
+
+export const RENO_PHASES = [
+  { id: "befaring", name: { no: "Befaring & tilbud", en: "Inspection & quote" }, pct: 100, status: "done" as const, date: { no: "Des 2025", en: "Dec 2025" } },
+  { id: "kontrakt", name: { no: "Kontrakt & oppstart", en: "Contract & kickoff" }, pct: 100, status: "done" as const, date: { no: "Jan 2026", en: "Jan 2026" } },
+  { id: "riving", name: { no: "Riving & demontering", en: "Demolition & strip-out" }, pct: 100, status: "done" as const, date: { no: "Feb 2026", en: "Feb 2026" } },
+  { id: "tilbygg", name: { no: "Tilbygg — råbygg & tett", en: "Extension — shell & weather-tight" }, pct: 100, status: "done" as const, date: { no: "Mars 2026", en: "Mar 2026" } },
+  { id: "teknisk", name: { no: "Rør, el & ventilasjon", en: "Plumbing, electrical & ventilation" }, pct: 55, status: "active" as const, date: { no: "Pågår nå", en: "In progress" } },
+  { id: "vatrom", name: { no: "Membran & flislegging (våtrom)", en: "Membrane & tiling (wet rooms)" }, pct: 0, status: "upcoming" as const, date: { no: "Juni 2026", en: "Jun 2026" } },
+  { id: "innredning", name: { no: "Innredning & overflater", en: "Fit-out & surfaces" }, pct: 0, status: "upcoming" as const, date: { no: "Aug 2026", en: "Aug 2026" } },
+  { id: "overtakelse", name: { no: "Sluttkontroll & overtakelse", en: "Final check & handover" }, pct: 0, status: "upcoming" as const, date: { no: "Nov 2026", en: "Nov 2026" } },
+];
+
+export const RENO_AVVIK: Avvik[] = [
+  {
+    id: "av1", room: { no: "Hovedbad", en: "Main bath" }, cat: "rate", tone: "ground",
+    title: { no: "Råteskader i bjelkelaget", en: "Rot in the floor joists" },
+    found: { no: "14. feb", en: "14 Feb" },
+    desc: { no: "Da vi rev gulvet i hovedbadet fant vi råte i bjelkelaget etter langvarig lekkasje rundt sluket.", en: "When we removed the bathroom floor we found rot in the joists from a long-standing leak around the drain." },
+    solution: { no: "Skifte berørte bjelker og bygge nytt, fuktsikkert undergulv før membran legges.", en: "Replace affected joists and build a new, moisture-safe subfloor before the membrane goes down." },
+    cost: 38000, days: 4, status: "pending", urgent: true,
+  },
+  {
+    id: "av2", room: { no: "1. etasje", en: "Ground floor" }, cat: "el", tone: "frame",
+    title: { no: "El-anlegg uten jording", en: "Wiring without earthing" },
+    found: { no: "9. feb", en: "9 Feb" },
+    desc: { no: "Eksisterende kursopplegg er fra 70-tallet, uten jording, og tåler ikke nytt forbruk.", en: "The existing wiring is from the 1970s, without earthing, and can't carry the new load." },
+    solution: { no: "Trekke nye kurser og montere nytt sikringsskap i hele 1. etasje. Samsvarserklæring utstedes.", en: "Run new circuits and fit a new fuse board across the ground floor. Compliance certificate issued." },
+    cost: 52000, days: 3, status: "approved",
+  },
+  {
+    id: "av3", room: { no: "Tak", en: "Roof" }, cat: "miljo", tone: "ground",
+    title: { no: "Asbest i gammel taktekking", en: "Asbestos in old roofing" },
+    found: { no: "2. feb", en: "2 Feb" },
+    desc: { no: "Prøve bekreftet asbest i undertaket. Må saneres av sertifisert firma før nytt tak legges.", en: "A sample confirmed asbestos in the underroof. It must be removed by a certified firm before the new roof." },
+    solution: { no: "Sanering etter forskrift, trygg avhending og dokumentasjon på utført arbeid.", en: "Removal to regulation, safe disposal and documentation of the work." },
+    cost: 24500, days: 2, status: "approved",
+  },
+  {
+    id: "av4", room: { no: "Tilbygg", en: "Extension" }, cat: "konstruksjon", tone: "frame",
+    title: { no: "Manglende bæring ved stueåpning", en: "Insufficient support at living-room opening" },
+    found: { no: "20. feb", en: "20 Feb" },
+    desc: { no: "Åpningen mot tilbygget krever større spennvidde enn opprinnelig antatt i tilbudet.", en: "The opening to the extension needs a longer span than first assumed in the quote." },
+    solution: { no: "Montere limtre-/stålbjelke dimensjonert av konstruktør, med ny søyle.", en: "Fit a glulam/steel beam sized by the structural engineer, with a new post." },
+    cost: 41000, days: 5, status: "pending", urgent: true,
+  },
+  {
+    id: "av5", room: { no: "Kjeller", en: "Basement" }, cat: "rate", tone: "ground",
+    title: { no: "Fukt i grunnmur", en: "Damp in the foundation wall" },
+    found: { no: "18. feb", en: "18 Feb" },
+    desc: { no: "Fuktmålinger i kjeller viser behov for utvendig drenering for å sikre de nye flatene over tid.", en: "Moisture readings in the basement show outside drainage is needed to protect the new surfaces over time." },
+    solution: { no: "Grave ut, drenere og fuktsikre grunnmur. Anbefalt tiltak — kan utsettes til neste sesong.", en: "Excavate, drain and damp-proof the foundation. Recommended — can be deferred to next season." },
+    cost: 68000, days: 6, status: "pending", optional: true,
+  },
+  {
+    id: "av6", room: { no: "Hele boligen", en: "Whole home" }, cat: "info", tone: "indoor",
+    title: { no: "Oppgradert brannsikring", en: "Upgraded fire safety" },
+    found: { no: "9. feb", en: "9 Feb" },
+    desc: { no: "Røykvarslere og slokkeutstyr oppgraderes til dagens krav.", en: "Smoke alarms and extinguishing equipment are upgraded to current code." },
+    solution: { no: "Inkludert i kontrakten — ingen ekstra kostnad. Kun til informasjon.", en: "Included in the contract — no extra cost. For your information only." },
+    cost: 0, days: 0, status: "info",
+  },
+];
+
+export const RENO_ROOMS: RenovationRoom[] = [
+  { id: "kjokken", name: { no: "Kjøkken (tilbygg)", en: "Kitchen (extension)" }, tone: "indoor", pct: 35, status: "active",
+    scope: { no: "Åpen løsning mot stue, ny innredning og hvitevarer", en: "Open-plan to living room, new units and appliances" },
+    mats: { no: ["Eik finer", "Kvarts benkeplate"], en: ["Oak veneer", "Quartz worktop"] } },
+  { id: "stue", name: { no: "Stue (tilbygg)", en: "Living room (extension)" }, tone: "frame", pct: 45, status: "active",
+    scope: { no: "28 m² tilbygg, store vindusfelt mot hagen", en: "28 m² extension, large windows to the garden" },
+    mats: { no: ["Eik bredplank", "Peisovn"], en: ["Wide oak plank", "Wood stove"] } },
+  { id: "hovedbad", name: { no: "Hovedbad", en: "Main bathroom" }, tone: "ground", pct: 20, status: "active",
+    scope: { no: "Komplett nytt bad, gulvvarme og dusjnisje", en: "Complete new bath, floor heating and shower niche" },
+    mats: { no: ["Naturstein-look", "Innfelt belysning"], en: ["Natural-stone look", "Recessed lighting"] } },
+  { id: "gjestebad", name: { no: "Gjestebad", en: "Guest bath" }, tone: "indoor", pct: 0, status: "upcoming",
+    scope: { no: "Nytt gjeste-wc med dusj i 1. etasje", en: "New guest WC with shower on the ground floor" },
+    mats: { no: ["Lys matt flis"], en: ["Light matte tile"] } },
+  { id: "fasade", name: { no: "Fasade", en: "Façade" }, tone: "ground", pct: 10, status: "upcoming",
+    scope: { no: "Etterisolering og ny liggende kledning", en: "Added insulation and new horizontal cladding" },
+    mats: { no: ["Royalimpregnert kledning"], en: ["Treated timber cladding"] } },
+  { id: "tak", name: { no: "Tak", en: "Roof" }, tone: "frame", pct: 60, status: "active",
+    scope: { no: "Nytt tak etter asbestsanering, nye takrenner", en: "New roof after asbestos removal, new gutters" },
+    mats: { no: ["Betongtakstein"], en: ["Concrete roof tiles"] } },
+];
+
+export const RENO_MATERIAL_GROUPS: MaterialGroup[] = [
+  { id: "kjokken", name: { no: "Kjøkkeninnredning", en: "Kitchen units" }, deadline: { no: "15. mai 2026", en: "15 May 2026" },
+    options: [
+      { id: "m1", name: { no: "Standard — hvit matt", en: "Standard — matte white" }, price: 0, selected: false },
+      { id: "m2", name: { no: "Eik finer m/ integrerte hvitevarer", en: "Oak veneer w/ integrated appliances" }, price: 78000, selected: true },
+      { id: "m3", name: { no: "Mørk grøn m/ kvarts", en: "Dark green w/ quartz" }, price: 64000, selected: false },
+    ] },
+  { id: "badflis", name: { no: "Bad — fliser", en: "Bath — tiles" }, deadline: { no: "01. juni 2026", en: "1 Jun 2026" },
+    options: [
+      { id: "b1", name: { no: "Standard — lys grå 30×60", en: "Standard — light grey 30×60" }, price: 0, selected: false },
+      { id: "b2", name: { no: "Naturstein-look 60×60", en: "Natural-stone look 60×60" }, price: 26000, selected: true },
+      { id: "b3", name: { no: "Mørk matt storformat", en: "Dark matte large-format" }, price: 31000, selected: false },
+    ] },
+  { id: "gulv", name: { no: "Gulv (hele boligen)", en: "Flooring (whole home)" }, deadline: { no: "01. juni 2026", en: "1 Jun 2026" },
+    options: [
+      { id: "g1", name: { no: "1-stavs eikeparkett", en: "1-strip oak parquet" }, price: 0, selected: false },
+      { id: "g2", name: { no: "Hvitoljet eik bredplank", en: "White-oiled wide oak plank" }, price: 41000, selected: true },
+      { id: "g3", name: { no: "Røkt eik bredplank", en: "Smoked oak wide plank" }, price: 47000, selected: false },
+    ] },
+  { id: "kledning", name: { no: "Utvendig kledning", en: "Exterior cladding" }, deadline: { no: "15. juli 2026", en: "15 Jul 2026" },
+    options: [
+      { id: "k1", name: { no: "Royalimpregnert furu — natur", en: "Treated pine — natural" }, price: 0, selected: true },
+      { id: "k2", name: { no: "Royal — mørk grå", en: "Treated — dark grey" }, price: 18000, selected: false },
+      { id: "k3", name: { no: "Liggende panel — malt hvit", en: "Horizontal panel — painted white" }, price: 12000, selected: false },
+    ] },
+];
+
+export const RENO_BUDGET: RenovationBudget = {
+  contract: 2980000,
+  materials: 145000,
+  changes: 76500,
+  paid: 894000,
+};
+
+export const RENO_PAYMENTS = [
+  { id: 1, label: { no: "Forskudd ved kontrakt", en: "Deposit at contract" }, amount: 298000, pct: "10%", status: "paid" as const, date: { no: "12.01.2026", en: "12 Jan 2026" } },
+  { id: 2, label: { no: "Ved riving ferdig", en: "At demolition complete" }, amount: 596000, pct: "20%", status: "paid" as const, date: { no: "28.02.2026", en: "28 Feb 2026" } },
+  { id: 3, label: { no: "Ved tett tilbygg", en: "At weather-tight extension" }, amount: 596000, pct: "20%", status: "upcoming" as const, date: { no: "30.04.2026", en: "30 Apr 2026" } },
+  { id: 4, label: { no: "Ved membran & flis", en: "At membrane & tiling" }, amount: 745000, pct: "25%", status: "upcoming" as const, date: { no: "30.06.2026", en: "30 Jun 2026" } },
+  { id: 5, label: { no: "Sluttoppgjør ved overtakelse", en: "Final settlement at handover" }, amount: 745000, pct: "25%", status: "upcoming" as const, date: { no: "15.11.2026", en: "15 Nov 2026" } },
+];
+
+export const RENO_DOCUMENTS = [
+  { id: 1, name: { no: "Tilbud — totalrenovering", en: "Quote — full renovation" }, cat: "contract" as const, date: { no: "18.12.2025", en: "18 Dec 2025" }, size: "1.4 MB", signed: true },
+  { id: 2, name: { no: "Entreprisekontrakt (NS 8406)", en: "Construction contract (NS 8406)" }, cat: "contract" as const, date: { no: "10.01.2026", en: "10 Jan 2026" }, size: "2.1 MB", signed: true },
+  { id: 3, name: { no: "Fremdriftsplan", en: "Progress schedule" }, cat: "drawing" as const, date: { no: "12.01.2026", en: "12 Jan 2026" }, size: "0.6 MB", signed: null },
+  { id: 4, name: { no: "Endringsavtale — el-anlegg", en: "Change order — wiring" }, cat: "contract" as const, date: { no: "11.02.2026", en: "11 Feb 2026" }, size: "0.4 MB", signed: false },
+  { id: 5, name: { no: "Asbestrapport & saneringsbevis", en: "Asbestos report & clearance" }, cat: "spec" as const, date: { no: "05.02.2026", en: "5 Feb 2026" }, size: "1.1 MB", signed: null },
+  { id: 6, name: { no: "Våtromsdokumentasjon / membrankontroll", en: "Wet-room documentation / membrane control" }, cat: "spec" as const, date: { no: "—", en: "—" }, size: "—", signed: null, soon: true },
+  { id: 7, name: { no: "Samsvarserklæring elektro", en: "Electrical compliance certificate" }, cat: "spec" as const, date: { no: "—", en: "—" }, size: "—", signed: null, soon: true },
+  { id: 8, name: { no: "FDV & garantidokumenter", en: "FDV & warranty documents" }, cat: "spec" as const, date: { no: "—", en: "—" }, size: "—", signed: null, soon: true },
+];
+
+export const RENO_PHOTO_ALBUMS = [
+  { phase: { no: "Rør & elektro", en: "Plumbing & electrical" }, date: { no: "Mai 2026", en: "May 2026" }, count: 9, tone: "frame" as const, tag: { no: "Underveis", en: "In progress" } },
+  { phase: { no: "Tilbygg — råbygg", en: "Extension — shell" }, date: { no: "Mars 2026", en: "Mar 2026" }, count: 14, tone: "wood" as const, tag: { no: "Underveis", en: "In progress" } },
+  { phase: { no: "Riving & demontering", en: "Demolition" }, date: { no: "Feb 2026", en: "Feb 2026" }, count: 11, tone: "ground" as const, tag: { no: "Underveis", en: "In progress" } },
+  { phase: { no: "Slik var det før", en: "How it looked before" }, date: { no: "Des 2025", en: "Dec 2025" }, count: 16, tone: "indoor" as const, tag: { no: "Før", en: "Before" } },
+];
+
+export const RENO_MESSAGES = [
+  { id: "rm1", from: "advisor" as const, text: { no: "Hei Kari! Tilbygget er tett og vi er godt i gang med rør og elektro. Jeg har lagt ut nye bilder i bildeloggen. 🙂", en: "Hi Kari! The extension is weather-tight and we're well underway with plumbing and electrical. New photos are in the gallery. 🙂" }, time: "08:30", date: { no: "5. mai", en: "5 May" } },
+  { id: "rm2", from: "me" as const, text: { no: "Så bra! Jeg så avviket om bjelkelaget i hovedbadet — kan vi ta en prat om det?", en: "Great! I saw the change order about the bathroom joists — can we talk it through?" }, time: "09:02", date: { no: "5. mai", en: "5 May" } },
+  { id: "rm3", from: "advisor" as const, text: { no: "Selvsagt. Det er viktig at vi tar det nå mens gulvet er åpent. Jeg har lagt forslag og pris under Avvik & endringer — godkjenner du der, så bestiller vi materialene i dag.", en: "Of course. It's important we do it now while the floor is open. I've put the proposal and price under Changes — approve it there and we'll order the materials today." }, time: "09:08", date: { no: "5. mai", en: "5 May" } },
+  { id: "rm4", from: "me" as const, text: { no: "Tusen takk for god forklaring. Jeg ser på det i kveld.", en: "Thanks for explaining it so well. I'll look tonight." }, time: "09:15", date: { no: "5. mai", en: "5 May" } },
+];
+
+export const RENO_MEETINGS_DATA = {
+  upcoming: [
+    { id: 1, title: { no: "Byggemøte underveis", en: "Site progress meeting" }, type: { no: "På byggeplass", en: "On site" }, date: { no: "22. mai 2026", en: "22 May 2026" }, time: "09:00", with: "Tom Eide", online: false },
+    { id: 2, title: { no: "Gjennomgang av tilvalg", en: "Material selections review" }, type: { no: "Digitalt møte", en: "Online" }, date: { no: "04. juni 2026", en: "4 Jun 2026" }, time: "14:00", with: "Tom Eide", online: true },
+  ],
+  past: [
+    { id: 3, title: { no: "Oppstartsmøte", en: "Kickoff meeting" }, type: { no: "På byggeplass", en: "On site" }, date: { no: "14. jan 2026", en: "14 Jan 2026" }, time: "10:00", with: "Tom Eide", online: false },
+  ],
+};
+
+export const RENO_INSPECTIONS = [
+  { id: 1, title: { no: "Befaring (tilstandsvurdering)", en: "Site inspection (condition survey)" }, date: { no: "08. des 2025", en: "8 Dec 2025" }, time: "11:00", status: "done" as const, note: { no: "Grunnlag for tilbud", en: "Basis for the quote" } },
+  { id: 2, title: { no: "Membrankontroll våtrom", en: "Wet-room membrane control" }, date: { no: "18. juni 2026", en: "18 Jun 2026" }, time: "13:00", status: "upcoming" as const, note: { no: "Uavhengig kontroll før flislegging", en: "Independent check before tiling" } },
+  { id: 3, title: { no: "Ferdigbefaring / overtakelse", en: "Final inspection / handover" }, date: { no: "10. nov 2026", en: "10 Nov 2026" }, time: "12:00", status: "upcoming" as const, note: { no: "Overtakelsesprotokoll signeres", en: "Handover protocol signed" } },
+];
+
+export const RENO_ON_SITE_TODAY: OnSiteToday = {
+  crew: { no: "Rørlegger + elektriker", en: "Plumber + electrician" },
+  hours: "07:30–15:30",
+  waterOff: { no: "Vann avstengt 09:00–14:00", en: "Water off 09:00–14:00" },
+  note: { no: "Vi legger rør-i-rør og trekker nye kurser i 1. etasje i dag. Det blir noe støy fra boring.", en: "We're laying pipe-in-pipe and pulling new circuits on the ground floor today. Expect some drilling noise." },
+  access: { no: "Nøkkel i nøkkelboks — kode sendt på SMS", en: "Key in lockbox — code sent by SMS" },
+};
+
+export const RENO_ACTIVITY_TODAY = [
+  { time: "07:30", text: { no: "Rørlegger og elektriker på plass", en: "Plumber and electrician on site" } },
+  { time: "09:00", text: { no: "Vannet stenges av for omlegging", en: "Water shut off for re-routing" } },
+  { time: "11:00", text: { no: "Nye kurser trekkes i stue og kjøkken", en: "New circuits pulled in living room and kitchen" } },
+  { time: "14:30", text: { no: "Vannet på igjen — dagens arbeid dokumentert", en: "Water back on — today's work documented" } },
+];
+
+export const RENO_NOTIFICATIONS = [
+  { icon: "alert", text: { no: "2 avvik venter på din godkjenning", en: "2 change orders await your approval" }, time: { no: "1t", en: "1h" }, unread: true },
+  { icon: "camera", text: { no: "9 nye bilder fra rør & elektro", en: "9 new photos from plumbing & electrical" }, time: { no: "1d", en: "1d" }, unread: true },
+  { icon: "chat", text: { no: "Tom Eide sendte deg en melding", en: "Tom Eide sent you a message" }, time: { no: "2d", en: "2d" }, unread: false },
+];
+
+export const RENO_SERVICES: RenovationService[] = [
+  { id: "total", icon: "home", label: { no: "Totaloppussing", en: "Full renovation" }, sub: { no: "Hele boligen", en: "The whole home" } },
+  { id: "tilbygg", icon: "building", label: { no: "Tilbygg / påbygg", en: "Extension / addition" }, sub: { no: "Mer plass", en: "More space" } },
+  { id: "fasade", icon: "roof", label: { no: "Fasade & tak", en: "Façade & roof" }, sub: { no: "Utvendig", en: "Exterior" } },
+  { id: "kjeller", icon: "layers", label: { no: "Kjeller / loft", en: "Basement / loft" }, sub: { no: "Ny boareal", en: "New living space" } },
+  { id: "bad", icon: "droplet", label: { no: "Bad", en: "Bathroom" }, sub: { no: "Våtrom", en: "Wet room" } },
+  { id: "kjokken", icon: "swatch", label: { no: "Kjøkken", en: "Kitchen" }, sub: { no: "Nytt kjøkken", en: "New kitchen" } },
+];
+
+export const RENO_INTAKE_QUESTIONS: IntakeQuestion[] = [
+  { id: "ambition", icon: "star", q: { no: "Hvor omfattende er prosjektet?", en: "How extensive is the project?" },
+    help: { no: "Et grovt anslag — vi finpusser på befaringen.", en: "A rough idea — we refine it at the inspection." },
+    options: [
+      { id: "refresh", label: { no: "Oppfriskning", en: "Refresh" }, sub: { no: "Overflater og kosmetikk", en: "Surfaces and cosmetics" } },
+      { id: "upgrade", label: { no: "Standardheving", en: "Upgrade" }, sub: { no: "Nye rom og funksjoner", en: "New rooms and functions" } },
+      { id: "total", label: { no: "Totalrenovering", en: "Full renovation" }, sub: { no: "Strip til reisverk", en: "Down to the studs" } },
+    ] },
+  { id: "homeType", icon: "home", q: { no: "Hva slags bolig er det?", en: "What kind of home is it?" },
+    help: { no: "Hjelper oss å forstå konstruksjonen.", en: "Helps us understand the structure." },
+    options: [
+      { id: "enebolig", label: { no: "Enebolig", en: "Detached house" } },
+      { id: "rekkehus", label: { no: "Rekkehus", en: "Townhouse" } },
+      { id: "leilighet", label: { no: "Leilighet", en: "Apartment" } },
+      { id: "hytte", label: { no: "Hytte", en: "Cabin" } },
+    ] },
+  { id: "built", icon: "clock", q: { no: "Når ble boligen bygget?", en: "When was the home built?" },
+    help: { no: "Eldre hus skjuler ofte overraskelser — det planlegger vi for.", en: "Older homes often hide surprises — we plan for that." },
+    options: [
+      { id: "pre60", label: { no: "Før 1960", en: "Before 1960" } },
+      { id: "60-80", label: { no: "1960–1980", en: "1960–1980" } },
+      { id: "80-00", label: { no: "1980–2000", en: "1980–2000" } },
+      { id: "post00", label: { no: "Etter 2000", en: "After 2000" } },
+    ] },
+  { id: "style", icon: "swatch", q: { no: "Hvilken stil drømmer du om?", en: "What style do you dream of?" },
+    help: { no: "Velg én eller flere.", en: "Pick one or more." }, multi: true,
+    options: [
+      { id: "scandi", label: { no: "Skandinavisk", en: "Scandinavian" } },
+      { id: "modern", label: { no: "Moderne", en: "Modern" } },
+      { id: "classic", label: { no: "Klassisk", en: "Classic" } },
+      { id: "warm", label: { no: "Varm minimalisme", en: "Warm minimalism" } },
+    ] },
+  { id: "budget", icon: "wallet", q: { no: "Omtrentlig budsjett?", en: "Approximate budget?" },
+    help: { no: "Bare et utgangspunkt — vi finner gode løsninger sammen.", en: "Just a starting point — we'll find good solutions together." },
+    options: [
+      { id: "u1", label: { no: "Under 1 mill", en: "Under 1M" }, sub: { no: "kr", en: "NOK" } },
+      { id: "1-2", label: { no: "1–2,5 mill", en: "1–2.5M" }, sub: { no: "kr", en: "NOK" } },
+      { id: "2-4", label: { no: "2,5–4 mill", en: "2.5–4M" }, sub: { no: "kr", en: "NOK" } },
+      { id: "4+", label: { no: "Over 4 mill", en: "Over 4M" }, sub: { no: "kr", en: "NOK" } },
+    ] },
+  { id: "timing", icon: "calendar", q: { no: "Når ønsker du å starte?", en: "When would you like to start?" },
+    help: { no: "Ingen forpliktelse — bare for å planlegge.", en: "No commitment — just for planning." },
+    options: [
+      { id: "asap", label: { no: "Så snart som mulig", en: "As soon as possible" } },
+      { id: "3-6", label: { no: "Om 3–6 måneder", en: "In 3–6 months" } },
+      { id: "6-12", label: { no: "Om 6–12 måneder", en: "In 6–12 months" } },
+      { id: "explore", label: { no: "Bare utforsker", en: "Just exploring" } },
+    ] },
+];
+
+export const RENO_ESTIMATE_BASE: Record<string, [number, number]> = {
+  refresh: [350000, 900000],
+  upgrade: [900000, 2200000],
+  total: [2200000, 4500000],
+};
+
+export const RENO_AI_SEED = {
+  nb: `Du er Krag sin AI-renoveringsassistent for Kari & Anders Tvedt, som totalrenoverer en enebolig fra 1973 i Vesterveien 8 på Lund, Kristiansand (162 m² + 28 m² tilbygg). Fremdrift: 48% ferdig — tilbygget er tett, rør/el/ventilasjon pågår (55%). Forventet overtakelse november 2026. Det er registrert avvik/endringer: råte i bjelkelag på hovedbad (+38 000 kr, venter på svar), manglende bæring i tilbygg (+41 000 kr, venter), fukt i grunnmur (+68 000 kr, anbefalt/valgfritt), mens el-anlegg uten jording (+52 000 kr) og asbestsanering tak (+24 500 kr) er godkjent. Kontraktsum 2 980 000 kr, valgte tilvalg 145 000 kr, godkjente endringer 76 500 kr. Neste betaling er ved tett tilbygg (596 000 kr, 30.04). Prosjektleder er Tom Eide. Svar kort, varmt og tydelig på norsk. Forklar gjerne hvorfor noe må gjøres i et eldre hus. Ikke finn på fakta — henvis til Tom ved usikkerhet.`,
+  en: `You are Krag's AI renovation assistant for Kari & Anders Tvedt, fully renovating a 1973 detached house at Vesterveien 8, Lund, Kristiansand (162 m² + 28 m² extension). Progress: 48% — the extension is weather-tight, plumbing/electrical/ventilation underway (55%). Expected handover November 2026. Logged change orders: rot in main-bath joists (+38,000 NOK, awaiting reply), insufficient support in extension (+41,000, awaiting), foundation damp (+68,000, recommended/optional), while wiring without earthing (+52,000) and roof asbestos removal (+24,500) are approved. Contract sum 2,980,000 NOK, selected options 145,000, approved changes 76,500. Next payment at weather-tight extension (596,000, 30 Apr). Project manager is Tom Eide. Answer briefly, warmly and clearly. Explain why something is needed in an older house. Don't invent facts — refer to Tom when unsure.`,
+};
+
+export const RENO_AI_SUGGESTIONS = {
+  nb: ["Hvorfor må bjelkelaget skiftes?", "Hva venter på min godkjenning?", "Når er neste betaling?"],
+  en: ["Why must the joists be replaced?", "What awaits my approval?", "When is my next payment?"],
 };

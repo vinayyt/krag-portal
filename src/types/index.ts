@@ -243,6 +243,98 @@ export type BookingRequest = {
   unitId?: string;
 };
 
+// ─── Renovation track ─────────────────────────────────────────────────────────
+
+export type RenovationProject = {
+  id: string;
+  name: BiString;
+  addressShort: string;
+  place: BiString;
+  address: BiString;
+  built: number;
+  area: number;
+  addArea?: number;
+  type: BiString;
+  scope: BiString;
+  progress: number;
+  start: BiString;
+  handover: BiString;
+};
+
+export type AvvikStatus = "pending" | "approved" | "declined" | "info";
+export type AvvikCategory = "rate" | "el" | "ror" | "konstruksjon" | "miljo" | "info";
+
+export type Avvik = {
+  id: string;
+  room: BiString;
+  cat: AvvikCategory;
+  tone: string;
+  title: BiString;
+  found: BiString;
+  desc: BiString;
+  solution: BiString;
+  cost: number;
+  days: number;
+  status: AvvikStatus;
+  urgent?: boolean;
+  optional?: boolean;
+};
+
+export type RenovationRoom = {
+  id: string;
+  name: BiString;
+  tone: string;
+  pct: number;
+  status: "active" | "upcoming" | "done";
+  scope: BiString;
+  mats: { no: string[]; en: string[] };
+};
+
+export type MaterialOption = {
+  id: string;
+  name: BiString;
+  price: number;
+  selected: boolean;
+};
+
+export type MaterialGroup = {
+  id: string;
+  name: BiString;
+  deadline: BiString;
+  options: MaterialOption[];
+};
+
+export type RenovationBudget = {
+  contract: number;
+  materials: number;
+  changes: number;
+  paid: number;
+};
+
+export type OnSiteToday = {
+  crew: BiString;
+  hours: string;
+  waterOff: BiString;
+  note: BiString;
+  access: BiString;
+};
+
+export type RenovationService = {
+  id: string;
+  icon: string;
+  label: BiString;
+  sub: BiString;
+};
+
+export type IntakeQuestion = {
+  id: string;
+  icon: string;
+  q: BiString;
+  help: BiString;
+  multi?: boolean;
+  options: { id: string; label: BiString; sub?: BiString }[];
+};
+
 // ─── AI ───────────────────────────────────────────────────────────────────────
 
 export type AiMessage = {
