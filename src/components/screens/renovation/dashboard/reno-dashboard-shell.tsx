@@ -225,7 +225,7 @@ export function RenoDashboardShell({ tab, onTabChange, children }: RenoDashboard
       <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, overflowY: "auto" }}>
         {RENO_NAV.map((n) => <NavItem key={n.id} n={n} />)}
       </nav>
-      <div style={{ borderTop: "1px solid var(--sidebar-line)", paddingTop: 14, marginTop: 8 }}>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 14, marginTop: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
           <Avatar initials={RENO_PM.initials} size={42} tone="accent" />
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -262,7 +262,7 @@ export function RenoDashboardShell({ tab, onTabChange, children }: RenoDashboard
         className="ksidebar"
         style={{
           width: 256, flexShrink: 0,
-          background: "var(--sidebar)", backgroundImage: "var(--sidebar-grad)",
+          background: "var(--sidebar-bg)", backgroundImage: "var(--sidebar)",
           color: "var(--sidebar-ink)", position: "sticky", top: 0, height: "100vh",
           display: "flex", flexDirection: "column", padding: "20px 14px",
         }}
@@ -383,7 +383,7 @@ export function RenoDashboardShell({ tab, onTabChange, children }: RenoDashboard
             onClick={(e) => e.stopPropagation()}
             style={{
               position: "absolute", top: 0, left: 0, bottom: 0, width: 280,
-              background: "var(--sidebar)", backgroundImage: "var(--sidebar-grad)",
+              background: "var(--sidebar-bg)", backgroundImage: "var(--sidebar)",
               color: "var(--sidebar-ink)", padding: "20px 14px",
               display: "flex", flexDirection: "column", animation: "fadeIn .2s",
             }}
