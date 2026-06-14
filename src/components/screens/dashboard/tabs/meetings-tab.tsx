@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { MEETINGS_DATA, INSPECTIONS } from "@/lib/data";
+import { MEETINGS_DATA, INSPECTIONS, ADVISOR, BUYER, DASHBOARD_PROJECT } from "@/lib/data";
 import { pick } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Tag } from "@/components/ui/tag";
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
+import { RecordButton } from "@/components/ui/record-button";
 import type { Meeting } from "@/types";
 
 interface MeetingWithStatus extends Meeting {
@@ -144,15 +145,26 @@ export function MeetingsTab() {
                   </div>
 
                   {meeting.status === "upcoming" && (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {isOnline && (
-                        <Button variant="accent" size="sm" icon="video">
-                          {t("join")}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {isOnline && (
+                          <Button variant="accent" size="sm" icon="video">
+                            {t("join")}
+                          </Button>
+                        )}
+                        <Button variant="soft" size="sm">
+                          {t("reschedule")}
                         </Button>
-                      )}
-                      <Button variant="soft" size="sm">
-                        {t("reschedule")}
-                      </Button>
+                      </div>
+                      <RecordButton
+                        meetingTitle={pick(meeting.title, locale)}
+                        meetingDate={pick(meeting.date, locale)}
+                        projectName={`${DASHBOARD_PROJECT.name} – ${DASHBOARD_PROJECT.unit}`}
+                        pmName={ADVISOR.name}
+                        pmEmail={ADVISOR.email}
+                        buyerName={BUYER.fullName}
+                        locale={locale}
+                      />
                     </div>
                   )}
                 </div>

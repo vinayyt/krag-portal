@@ -11,8 +11,9 @@ import { ProgressBar } from "@/components/ui/progress";
 import { Avatar } from "@/components/ui/avatar";
 import { ImageBox } from "@/components/ui/image-box";
 import { Money } from "@/components/ui/money";
+import { RecordButton } from "@/components/ui/record-button";
 import {
-  RENO_PM, RENO_PROJECT, RENO_PHASES, RENO_AVVIK, RENO_ROOMS,
+  RENO_PM, RENO_PROJECT, RENO_BUYER, RENO_PHASES, RENO_AVVIK, RENO_ROOMS,
   RENO_MATERIAL_GROUPS, RENO_BUDGET, RENO_PAYMENTS, RENO_DOCUMENTS,
   RENO_PHOTO_ALBUMS, RENO_MESSAGES, RENO_MEETINGS_DATA, RENO_INSPECTIONS,
   RENO_ON_SITE_TODAY, RENO_ACTIVITY_TODAY,
@@ -917,9 +918,20 @@ export function RenoMeetings() {
       {(past || ("status" in it && it.status === "done"))
         ? <Tag tone="good" size="sm" icon="check">{locale === "en" ? "Completed" : "Gjennomført"}</Tag>
         : (
-          <div style={{ display: "flex", gap: 8 }}>
-            {"online" in it && it.online && <Button variant="primary" size="sm" icon="video">{locale === "en" ? "Join" : "Bli med"}</Button>}
-            <Button variant="soft" size="sm">{locale === "en" ? "Reschedule" : "Endre"}</Button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0 }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              {"online" in it && it.online && <Button variant="primary" size="sm" icon="video">{locale === "en" ? "Join" : "Bli med"}</Button>}
+              <Button variant="soft" size="sm">{locale === "en" ? "Reschedule" : "Endre"}</Button>
+            </div>
+            <RecordButton
+              meetingTitle={"title" in it ? pick(it.title, locale) : ""}
+              meetingDate={"date" in it ? pick(it.date, locale) : ""}
+              projectName={`${RENO_PROJECT.addressShort} – ${locale === "en" ? "Full renovation" : "Totalrenovering"}`}
+              pmName={RENO_PM.name}
+              pmEmail={RENO_PM.email}
+              buyerName={RENO_BUYER.name}
+              locale={locale}
+            />
           </div>
         )
       }
