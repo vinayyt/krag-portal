@@ -307,6 +307,21 @@ export function DashboardShell() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Project switcher */}
+            <Link
+              href={`/${locale}/reno`}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "7px 13px", borderRadius: 10,
+                background: "var(--surface)", border: "1px solid var(--line)",
+                boxShadow: "var(--shadow-sm)", textDecoration: "none",
+                fontSize: 13, fontWeight: 600, color: "var(--ink-2)",
+              }}
+            >
+              <Icon name="tools" size={15} style={{ color: "var(--accent)" }} />
+              {locale === "en" ? "Renovation" : "Renovering"}
+            </Link>
+
             {/* Lang toggle */}
             <div
               style={{
