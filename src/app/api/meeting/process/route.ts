@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
-import { Resend } from "resend";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
-const resend = new Resend(process.env.RESEND_API_KEY!);
+// Force Node.js runtime — Edge runtime does not support these server packages.
+export const runtime = "nodejs";
 
 interface ActionItem {
   task: string;
@@ -31,6 +29,12 @@ interface RequestBody {
 
 export async function POST(req: NextRequest) {
   try {
+    // Dynamic imports keep webpack from statically bundling server-only packages.
+    const { default: Anthropic } = await import("@anthropic-ai/sdk");
+    const { Resend } = await import("resend");
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+    const resend = new Resend(process.env.RESEND_API_KEY!);
+
     const body: RequestBody = await req.json();
     const { transcript, meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale } =
       body;
