@@ -75,6 +75,7 @@ export function RecordButton({
   const boxRef = useRef<HTMLDivElement>(null);
   // Ref always holds the latest full transcript (final + interim) — avoids stale closures in stopAndProcess
   const liveRef = useRef("");
+  const timer = useTimer(state === "recording");
 
   // Check support once on mount
   useEffect(() => { if (!getSR()) setState("unsupported"); }, []);
