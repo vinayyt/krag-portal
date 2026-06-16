@@ -30,7 +30,7 @@ function getSR(): SRConstructor | null {
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type RecordState = "idle" | "recording" | "processing" | "done" | "error" | "unsupported";
+type RecordState = "idle" | "recording" | "email-prompt" | "processing" | "done" | "error" | "unsupported";
 
 export interface MeetingSummary {
   keyPoints: string[];
@@ -71,16 +71,14 @@ export function RecordButton({
   const [interim, setInterim] = useState("");
   const [summary, setSummary] = useState<MeetingSummary | null>(null);
   const [errMsg, setErrMsg] = useState("");
+  const [emailInput, setEmailInput] = useState("");
   const srRef = useRef<SRInstance | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  // Ref always holds the latest full transcript (final + interim) — avoids stale closures in stopAndProcess
   const liveRef = useRef("");
   const timer = useTimer(state === "recording");
 
-  // Check support once on mount
   useEffect(() => { if (!getSR()) setState("unsupported"); }, []);
 
-  // Auto-scroll transcript box
   useEffect(() => {
     if (boxRef.current) boxRef.current.scrollTop = boxRef.current.scrollHeight;
   }, [finalText, interim]);
@@ -107,7 +105,6 @@ export function RecordButton({
         setFinalText(accumulatedFinal);
       }
       setInterim(int);
-      // Always keep ref in sync so stopAndProcess never sees stale text
       liveRef.current = accumulatedFinal + int;
     };
 
@@ -116,11 +113,10 @@ export function RecordButton({
       setErrMsg(isNb ? "Mikrofontilgang nektet eller mistet." : "Microphone access denied or lost.");
     };
 
-    // SpeechRecognition may end on its own (silence) — restart it silently
     sr.onend = () => {
       setState((cur) => {
         if (cur === "recording") {
-          try { sr.start(); } catch { /* already stopped by user */ }
+          try { sr.start(); } catch { /* stopped by user */ }
         }
         return cur;
       });
@@ -131,7 +127,8 @@ export function RecordButton({
     setState("recording");
   }, [isNb]);
 
-  const stopAndProcess = useCallback(async () => {
+  // Stop recording → show email prompt
+  const stopRecording = useCallback(() => {
     if (srRef.current) {
       srRef.current.onend = null;
       srRef.current.stop();
@@ -139,7 +136,6 @@ export function RecordButton({
     }
     setInterim("");
 
-    // Use the ref — always has the latest text (final + any pending interim)
     const transcript = liveRef.current.trim();
     if (transcript.length < 20) {
       setState("error");
@@ -147,12 +143,19 @@ export function RecordButton({
       return;
     }
 
+    setEmailInput(pmEmail); // pre-fill with PM's email
+    setState("email-prompt");
+  }, [isNb, pmEmail]);
+
+  // Submit with chosen email
+  const submitWithEmail = useCallback(async (toEmail: string) => {
     setState("processing");
+    const transcript = liveRef.current.trim();
     try {
       const res = await fetch("/api/meeting/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript, meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale }),
+        body: JSON.stringify({ transcript, meetingTitle, meetingDate, projectName, pmName, pmEmail: toEmail, buyerName, locale }),
       });
       const data = await res.json().catch(() => ({})) as Record<string, string>;
       if (!res.ok) {
@@ -164,13 +167,15 @@ export function RecordButton({
     } catch (e) {
       setState("error");
       const msg = e instanceof Error ? e.message : String(e);
-      // Show the real error so it's easy to diagnose
-      setErrMsg(msg.length < 120 ? msg : (isNb ? "Noe gikk galt — sjekk nettleser-konsollen for detaljer." : "Something went wrong — check the browser console for details."));
+      setErrMsg(msg.length < 140 ? msg : (isNb ? "Noe gikk galt — sjekk konsollen for detaljer." : "Something went wrong — check browser console."));
       console.error("[RecordButton]", e);
     }
-  }, [meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale, isNb]);
+  }, [meetingTitle, meetingDate, projectName, pmName, buyerName, locale, isNb]);
 
-  const reset = () => { setState("idle"); setFinalText(""); setInterim(""); setSummary(null); setErrMsg(""); };
+  const reset = () => {
+    setState("idle");
+    setFinalText(""); setInterim(""); setSummary(null); setErrMsg(""); setEmailInput(""); liveRef.current = "";
+  };
 
   // ── Unsupported ──────────────────────────────────────────────────────────────
   if (state === "unsupported") {
@@ -186,7 +191,6 @@ export function RecordButton({
   if (state === "done" && summary) {
     return (
       <div style={{ marginTop: 12, border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
-        {/* Success header */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: "var(--good-soft)", borderBottom: "1px solid var(--line)" }}>
           <div style={{ width: 26, height: 26, borderRadius: "50%", background: "var(--good)", display: "grid", placeItems: "center", flexShrink: 0 }}>
             <Icon name="check" size={13} style={{ color: "#fff" }} />
@@ -195,14 +199,12 @@ export function RecordButton({
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--good)" }}>
               {isNb ? "Referat sendt til" : "Summary sent to"} {pmName}
             </div>
-            <div style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{pmEmail}</div>
+            <div style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{emailInput || pmEmail}</div>
           </div>
           <button onClick={reset} style={{ fontSize: 12, color: "var(--ink-3)", padding: "4px 10px", borderRadius: 7, border: "1px solid var(--line)", background: "var(--surface)", cursor: "pointer" }}>
             {isNb ? "Nytt" : "New"}
           </button>
         </div>
-
-        {/* Summary preview */}
         <div style={{ padding: "12px 14px", background: "var(--surface)" }}>
           {summary.keyPoints.length > 0 && (
             <div style={{ marginBottom: 10 }}>
@@ -235,13 +237,67 @@ export function RecordButton({
     );
   }
 
+  // ── Email prompt ─────────────────────────────────────────────────────────────
+  if (state === "email-prompt") {
+    return (
+      <div style={{ marginTop: 12, border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ padding: "13px 16px", background: "var(--surface-2)", borderBottom: "1px solid var(--line)" }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)", marginBottom: 3 }}>
+            {isNb ? "Send referat til" : "Send summary to"}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--ink-3)" }}>
+            {isNb ? "Endre e-post om nødvendig" : "Change email if needed"}
+          </div>
+        </div>
+        <div style={{ padding: "14px 16px", background: "var(--surface)", display: "flex", flexDirection: "column", gap: 10 }}>
+          <input
+            type="email"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
+            autoFocus
+            placeholder="e.g. you@example.com"
+            style={{
+              width: "100%", boxSizing: "border-box",
+              padding: "9px 12px", borderRadius: 8,
+              border: "1.5px solid var(--line)", background: "var(--surface)",
+              fontSize: 14, color: "var(--ink)", outline: "none",
+              fontFamily: "inherit",
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "var(--line)"; }}
+            onKeyDown={(e) => { if (e.key === "Enter" && emailInput.includes("@")) submitWithEmail(emailInput); }}
+          />
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => submitWithEmail(emailInput)}
+              disabled={!emailInput.includes("@")}
+              style={{
+                flex: 1, padding: "8px 14px", borderRadius: 8, border: "none",
+                background: emailInput.includes("@") ? "var(--accent)" : "var(--surface-2)",
+                color: emailInput.includes("@") ? "#fff" : "var(--ink-3)",
+                fontSize: 13.5, fontWeight: 700, cursor: emailInput.includes("@") ? "pointer" : "default",
+                transition: "background .15s, color .15s",
+              }}
+            >
+              {isNb ? "Send referat" : "Send summary"}
+            </button>
+            <button
+              onClick={reset}
+              style={{ padding: "8px 13px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--surface)", fontSize: 13, color: "var(--ink-3)", cursor: "pointer" }}
+            >
+              {isNb ? "Avbryt" : "Cancel"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Recording ─────────────────────────────────────────────────────────────────
   if (state === "recording") {
     return (
       <div style={{ marginTop: 12, border: "1.5px solid #fca5a5", borderRadius: 12, overflow: "hidden" }}>
-        {/* Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#fef2f2", borderBottom: "1px solid #fca5a5" }}>
-          {/* Pulsing dot */}
           <span style={{ position: "relative", width: 10, height: 10, flexShrink: 0 }}>
             <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#ef4444", animation: "krPulse 1.3s ease-out infinite" }} />
             <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#ef4444" }} />
@@ -251,15 +307,13 @@ export function RecordButton({
           </span>
           <span style={{ fontFamily: "monospace", fontSize: 13.5, fontWeight: 700, color: "#dc2626", marginLeft: "auto" }}>{timer}</span>
           <button
-            onClick={stopAndProcess}
+            onClick={stopRecording}
             style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 13px", borderRadius: 8, background: "#ef4444", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}
           >
             <Icon name="x" size={13} />
             {isNb ? "Stopp & send" : "Stop & send"}
           </button>
         </div>
-
-        {/* Live transcript */}
         <div
           ref={boxRef}
           style={{ maxHeight: 140, overflowY: "auto", padding: "10px 14px", background: "#fff", fontSize: 13.5, lineHeight: 1.65, color: "var(--ink-2)" }}
@@ -269,7 +323,6 @@ export function RecordButton({
             : <span style={{ color: "var(--ink-3)", fontStyle: "italic" }}>{isNb ? "Snakk nå — teksten vises her i sanntid…" : "Speak now — text appears here in real-time…"}</span>
           }
         </div>
-
         <style>{`
           @keyframes krPulse {
             0% { transform:scale(1); opacity:.9; }
