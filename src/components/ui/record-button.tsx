@@ -73,7 +73,8 @@ export function RecordButton({
   const [errMsg, setErrMsg] = useState("");
   const srRef = useRef<SRInstance | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  const timer = useTimer(state === "recording");
+  // Ref always holds the latest full transcript (final + interim) — avoids stale closures in stopAndProcess
+  const liveRef = useRef("");
 
   // Check support once on mount
   useEffect(() => { if (!getSR()) setState("unsupported"); }, []);
@@ -86,21 +87,27 @@ export function RecordButton({
   const startRecording = useCallback(() => {
     const SR = getSR();
     if (!SR) return;
-    setFinalText(""); setInterim(""); setSummary(null); setErrMsg("");
+    setFinalText(""); setInterim(""); setSummary(null); setErrMsg(""); liveRef.current = "";
 
     const sr = new SR();
     sr.continuous = true;
     sr.interimResults = true;
     sr.lang = isNb ? "nb-NO" : "en-US";
 
+    let accumulatedFinal = "";
     sr.onresult = (ev) => {
       let fin = "", int = "";
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
         const t = ev.results[i][0].transcript;
         ev.results[i].isFinal ? (fin += t + " ") : (int += t);
       }
-      if (fin) setFinalText((p) => p + fin);
+      if (fin) {
+        accumulatedFinal += fin;
+        setFinalText(accumulatedFinal);
+      }
       setInterim(int);
+      // Always keep ref in sync so stopAndProcess never sees stale text
+      liveRef.current = accumulatedFinal + int;
     };
 
     sr.onerror = () => {
@@ -131,7 +138,8 @@ export function RecordButton({
     }
     setInterim("");
 
-    const transcript = finalText.trim();
+    // Use the ref — always has the latest text (final + any pending interim)
+    const transcript = liveRef.current.trim();
     if (transcript.length < 20) {
       setState("error");
       setErrMsg(isNb ? "For lite tale ble registrert — prøv igjen." : "Too little speech captured — please try again.");
@@ -159,7 +167,7 @@ export function RecordButton({
       setErrMsg(msg.length < 120 ? msg : (isNb ? "Noe gikk galt — sjekk nettleser-konsollen for detaljer." : "Something went wrong — check the browser console for details."));
       console.error("[RecordButton]", e);
     }
-  }, [finalText, meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale, isNb]);
+  }, [meetingTitle, meetingDate, projectName, pmName, pmEmail, buyerName, locale, isNb]);
 
   const reset = () => { setState("idle"); setFinalText(""); setInterim(""); setSummary(null); setErrMsg(""); };
 
