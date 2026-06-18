@@ -67,7 +67,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
     body: JSON.stringify({
       // Use onboarding@resend.dev in dev (no domain verification needed).
       // In production replace with a verified sender: noreply@kraggruppen.no
-      from: "Krag Portal <onboarding@resend.dev>",
+      from: "Krag Portal <noreply@pitchperfect-ltd.com>",
       to: [to],
       subject,
       html,
@@ -89,6 +89,12 @@ export async function POST(req: NextRequest) {
     if (!transcript || transcript.trim().length < 20) {
       return NextResponse.json({ error: "Transcript too short" }, { status: 400 });
     }
+
+    // ── Key presence check (visible in Vercel function logs) ──────────────────
+    const anthropicKey = process.env.ANTHROPIC_API_KEY ?? "";
+    const resendKey = process.env.RESEND_API_KEY ?? "";
+    console.log("[meeting/process] ANTHROPIC_API_KEY present:", anthropicKey.length > 10 && !anthropicKey.includes("..."));
+    console.log("[meeting/process] RESEND_API_KEY present:", resendKey.length > 10 && !resendKey.includes("..."));
 
     // ── Step 1: Claude summarization ──────────────────────────────────────────
     const isNb = locale !== "en";
