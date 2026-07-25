@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AdminDashboard } from "@/components/screens/admin/admin-dashboard";
+import { fetchAdminData } from "@/lib/admin-data";
 
 export default async function AdminPage({ params: { locale } }: { params: { locale: string } }) {
   setRequestLocale(locale);
@@ -12,5 +13,13 @@ export default async function AdminPage({ params: { locale } }: { params: { loca
     redirect(`/${locale}/auth`);
   }
 
-  return <AdminDashboard locale={locale} builderName={session.user.name} />;
+  const buyers = await fetchAdminData();
+
+  return (
+    <AdminDashboard
+      locale={locale}
+      builderName={session.user.name}
+      buyers={buyers}
+    />
+  );
 }
