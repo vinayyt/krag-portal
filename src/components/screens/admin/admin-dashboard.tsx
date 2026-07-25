@@ -30,8 +30,8 @@ const SECTIONS = [
 export function AdminDashboard({ locale, builderName, buyers }: AdminDashboardProps) {
   const isNb = locale !== "en";
   const [activeSection, setActiveSection] = useState<SectionKey>(null);
-  // For pilot: single buyer
-  const [buyer, setBuyer] = useState<AdminBuyer>(buyers[0]);
+  // For pilot: single buyer (guard: no buyer yet means no portal data)
+  const [buyer, setBuyer] = useState<AdminBuyer | null>(buyers[0] ?? null);
 
   // Refresh buyer data from server after mutations
   async function refreshBuyer() {
@@ -138,6 +138,13 @@ export function AdminDashboard({ locale, builderName, buyers }: AdminDashboardPr
                   : "Manage your customer's project portal from here."}
               </p>
             </div>
+
+            {/* No buyer yet */}
+            {!buyer && (
+              <div style={{ padding: "20px 24px", borderRadius: 12, background: "var(--warn-soft, #fef9e7)", border: "1px solid var(--warn)", marginBottom: 28, fontSize: 14, color: "var(--ink-2)" }}>
+                {isNb ? "Ingen kjøper er koblet til portalen ennå. Kjør seed-scriptet for å sette opp testdata." : "No buyer is connected to the portal yet. Run the seed script to set up test data."}
+              </div>
+            )}
 
             {/* Buyer summary card */}
             {buyer && (

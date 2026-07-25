@@ -18,6 +18,19 @@ const EMPTY_FORM = {
   online: false,
 };
 
+/** Convert "2026-03-15" → "15. mars 2026" (nb) / "15 Mar 2026" (en) */
+function formatDateForDisplay(isoDate: string, lang: "nb" | "en") {
+  try {
+    const [y, m, d] = isoDate.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(lang === "nb" ? "nb-NO" : "en-GB", {
+      day: "numeric", month: lang === "nb" ? "long" : "short", year: "numeric",
+    });
+  } catch {
+    return isoDate;
+  }
+}
+
 export function MeetingsSection({ buyerId, meetings: initial, onBack, onSaved }: MeetingsSectionProps) {
   const [meetings, setMeetings] = useState<AdminMeeting[]>(initial);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -28,6 +41,8 @@ export function MeetingsSection({ buyerId, meetings: initial, onBack, onSaved }:
   async function addMeeting() {
     if (!form.titleNo || !form.dateNo || !form.time) return;
     setAdding(true);
+    const displayNo = formatDateForDisplay(form.dateNo, "nb");
+    const displayEn = formatDateForDisplay(form.dateNo, "en");
     const res = await fetch("/api/admin/meetings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,8 +50,8 @@ export function MeetingsSection({ buyerId, meetings: initial, onBack, onSaved }:
         buyerId,
         titleNo: form.titleNo,
         titleEn: form.titleEn || form.titleNo,
-        dateNo: form.dateNo,
-        dateEn: form.dateNo,
+        dateNo: displayNo,
+        dateEn: displayEn,
         time: form.time,
         online: form.online,
       }),
