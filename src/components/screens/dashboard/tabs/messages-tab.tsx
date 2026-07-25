@@ -2,40 +2,48 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { MESSAGES, ADVISOR, BUYER } from "@/lib/data";
 import { pick } from "@/lib/format";
 import { Icon } from "@/components/ui/icon";
 import { Avatar } from "@/components/ui/avatar";
+import { useDashboard } from "../dashboard-context";
 import type { Message } from "@/types";
 
 export function MessagesTab() {
   const locale = useLocale();
   const t = useTranslations("messages");
-  const [messages, setMessages] = useState<Message[]>(MESSAGES);
+  const { messages: initialMessages, advisor: ADVISOR, buyer: BUYER } = useDashboard();
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  function send() {
+  async function send() {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || sending) return;
+    setSending(true);
     const now = new Date();
-    const timeStr = now.toLocaleTimeString(locale === "nb" ? "nb-NO" : "en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const newMsg: Message = {
-      id: `m${Date.now()}`,
+    const timeStr = now.toLocaleTimeString(locale === "nb" ? "nb-NO" : "en-GB", { hour: "2-digit", minute: "2-digit" });
+    const optimistic: Message = {
+      id: `tmp-${Date.now()}`,
       from: "me",
       text: { no: text, en: text },
       time: timeStr,
       date: { no: "Nå", en: "Now" },
     };
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages((prev) => [...prev, optimistic]);
     setDraft("");
+    try {
+      await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, locale }),
+      });
+    } catch { /* message shown optimistically already */ }
+    setSending(false);
   }
 
   return (

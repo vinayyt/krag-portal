@@ -2,7 +2,8 @@
 
 import React from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { BUDGET, PAYMENTS, CHOICE_GROUPS } from "@/lib/data";
+import { useDashboard } from "../dashboard-context";
+import { CHOICE_GROUPS } from "@/lib/data";
 import { deriveAddonsTotal } from "@/lib/recommendations";
 import { pick, fmtNOK } from "@/lib/format";
 import { Card } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { ProgressBar } from "@/components/ui/progress";
 export function BudgetTab() {
   const locale = useLocale();
   const t = useTranslations("budget");
+  const { budget: BUDGET, payments: PAYMENTS } = useDashboard();
   const addonsTotal = deriveAddonsTotal(CHOICE_GROUPS);
   const total = BUDGET.base + addonsTotal;
   const remaining = total - BUDGET.paid;

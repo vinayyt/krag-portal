@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { MEETINGS_DATA, INSPECTIONS, ADVISOR, BUYER, DASHBOARD_PROJECT } from "@/lib/data";
+import { INSPECTIONS } from "@/lib/data";
 import { pick } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Tag } from "@/components/ui/tag";
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { RecordButton } from "@/components/ui/record-button";
+import { useDashboard } from "../dashboard-context";
 import type { Meeting } from "@/types";
 
 interface MeetingWithStatus extends Meeting {
@@ -18,16 +19,15 @@ interface MeetingWithStatus extends Meeting {
 export function MeetingsTab() {
   const locale = useLocale();
   const t = useTranslations("meetings_tab");
+  const { meetings, advisor: ADVISOR, buyer: BUYER, project: DASHBOARD_PROJECT } = useDashboard();
   const [activeSection, setActiveSection] = useState<"upcoming" | "past">("upcoming");
 
-  const upcomingMeetings: MeetingWithStatus[] = MEETINGS_DATA.upcoming.map((m) => ({
-    ...m,
-    status: "upcoming" as const,
-  }));
-  const pastMeetings: MeetingWithStatus[] = MEETINGS_DATA.past.map((m) => ({
-    ...m,
-    status: "past" as const,
-  }));
+  const upcomingMeetings: MeetingWithStatus[] = meetings
+    .filter((m) => (m as MeetingWithStatus).status === "upcoming")
+    .map((m) => ({ ...m, status: "upcoming" as const }));
+  const pastMeetings: MeetingWithStatus[] = meetings
+    .filter((m) => (m as MeetingWithStatus).status === "past")
+    .map((m) => ({ ...m, status: "past" as const }));
 
   const shown = activeSection === "upcoming" ? upcomingMeetings : pastMeetings;
 

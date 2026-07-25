@@ -2,18 +2,8 @@
 
 import React from "react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  DASHBOARD_PROJECT,
-  ADVISOR,
-  BUDGET,
-  PAYMENTS,
-  UPDATES,
-  ACTIVITY_TODAY,
-  CHOICE_GROUPS,
-  DOCUMENTS,
-  PHOTO_ALBUMS,
-  PHASES,
-} from "@/lib/data";
+import { useDashboard } from "../dashboard-context";
+import { UPDATES, ACTIVITY_TODAY, PHOTO_ALBUMS, CHOICE_GROUPS } from "@/lib/data";
 import { pick, fmtNOK } from "@/lib/format";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +22,7 @@ interface OverviewTabProps {
 export function OverviewTab({ setTab }: OverviewTabProps) {
   const locale = useLocale();
   const t = useTranslations("overview");
+  const { project: DASHBOARD_PROJECT, advisor: ADVISOR, budget: BUDGET, payments: PAYMENTS, documents: DOCUMENTS, phases: PHASES } = useDashboard();
   const project = DASHBOARD_PROJECT;
   const nextPayment = PAYMENTS.find((p) => p.status === "upcoming");
   const activePhase = PHASES.find((p) => p.status === "active");

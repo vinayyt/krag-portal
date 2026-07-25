@@ -1,40 +1,47 @@
-/**
- * GET  /api/messages  — fetch thread for authenticated buyer
- * POST /api/messages  — send a message
- *
- * In production: auth middleware sets req.headers['x-buyer-id']
- * For now: returns seed data.
- */
-
 import { NextRequest, NextResponse } from "next/server";
-import { MESSAGES } from "@/lib/data";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 
-export async function GET() {
-  // TODO: auth guard + Prisma query by buyerId
-  return NextResponse.json(MESSAGES);
-}
+const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+
   let body: { text: string; locale?: string };
-  try {
-    body = await req.json();
-  } catch {
+  try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const text = body.text?.trim();
-  if (!text) {
-    return NextResponse.json({ error: "text is required" }, { status: 422 });
-  }
+  if (!text) return NextResponse.json({ error: "text is required" }, { status: 422 });
 
-  // TODO: save to Prisma, push real-time notification to advisor
-  const created = {
-    id: `m${Date.now()}`,
-    from: "me" as const,
+  const buyer = await prisma.buyer.findUnique({ where: { userId: session.user.id } });
+  if (!buyer) return NextResponse.json({ error: "Buyer not found" }, { status: 404 });
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+  const dateStr = now.toLocaleDateString("nb-NO", { day: "numeric", month: "short" });
+
+  const msg = await prisma.message.create({
+    data: {
+      buyerId: buyer.id,
+      advisorId: buyer.advisorId,
+      from: "me",
+      textNo: text,
+      textEn: text,
+      time: timeStr,
+      dateNo: dateStr,
+      dateEn: dateStr,
+    },
+  });
+
+  return NextResponse.json({
+    id: msg.id,
+    from: "me",
     text: { no: text, en: text },
-    time: new Date().toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }),
-    date: { no: "Nå", en: "Now" },
-  };
-
-  return NextResponse.json(created, { status: 201 });
+    time: timeStr,
+    date: { no: dateStr, en: dateStr },
+  }, { status: 201 });
 }

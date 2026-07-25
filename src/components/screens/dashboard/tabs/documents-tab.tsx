@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { DOCUMENTS } from "@/lib/data";
+import { useDashboard } from "../dashboard-context";
 import { pick } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Tag } from "@/components/ui/tag";
@@ -14,6 +14,7 @@ const CATS = ["all", "contract", "drawing", "spec"] as const;
 export function DocumentsTab() {
   const locale = useLocale();
   const t = useTranslations("documents");
+  const { documents: DOCUMENTS } = useDashboard();
   const [filter, setFilter] = useState<string>("all");
 
   const catLabels: Record<string, string> = {

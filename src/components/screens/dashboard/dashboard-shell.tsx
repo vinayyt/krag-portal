@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ADVISOR, BUYER, DASHBOARD_PROJECT, NOTIFICATIONS } from "@/lib/data";
+import { useDashboard } from "./dashboard-context";
 import { pick } from "@/lib/format";
 import { Icon } from "@/components/ui/icon";
 import { Avatar } from "@/components/ui/avatar";
@@ -84,6 +84,7 @@ export function DashboardShell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
+  const { buyer: BUYER, advisor: ADVISOR, project: DASHBOARD_PROJECT, notifications: NOTIFICATIONS } = useDashboard();
   const unreadNotifs = NOTIFICATIONS.filter((n) => n.unread).length;
   const project = DASHBOARD_PROJECT;
 

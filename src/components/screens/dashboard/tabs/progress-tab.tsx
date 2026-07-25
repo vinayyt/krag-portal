@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { PHASES, DASHBOARD_PROJECT } from "@/lib/data";
+import { useDashboard } from "../dashboard-context";
 import { pick } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Tag } from "@/components/ui/tag";
@@ -12,6 +12,7 @@ import { Ring, ProgressBar } from "@/components/ui/progress";
 export function ProgressTab() {
   const locale = useLocale();
   const t = useTranslations("progress");
+  const { project: DASHBOARD_PROJECT, phases: PHASES } = useDashboard();
   const project = DASHBOARD_PROJECT;
   const donePhasesCount = PHASES.filter((p) => p.status === "done").length;
   const daysToHandover = 90; // computed in production from handover date
