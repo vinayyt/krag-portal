@@ -9,14 +9,32 @@
  */
 
 import { PrismaClient } from "@prisma/client";
-
-// Pre-computed bcrypt hash of "demo1234" (cost 10) — no bcryptjs dependency needed for seeding
-const DEMO_PASSWORD_HASH = "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Passwords hashed at seed time — change these before a real deployment
+const BUYER_PASSWORD = "Kjøper2024!";
+const BUILDER_PASSWORD = "Bygger2024!";
+
 async function main() {
   console.log("🌱  Seeding Krag Portal…");
+
+  const buyerHash = await bcrypt.hash(BUYER_PASSWORD, 10);
+  const builderHash = await bcrypt.hash(BUILDER_PASSWORD, 10);
+
+  // ── Builder (admin) user ──────────────────────────────────────────────────
+  await prisma.user.upsert({
+    where: { email: "builder@kraggruppen.no" },
+    update: { passwordHash: builderHash, role: "BUILDER" },
+    create: {
+      email: "builder@kraggruppen.no",
+      name: "Krag Byggherre",
+      role: "BUILDER",
+      locale: "nb",
+      passwordHash: builderHash,
+    },
+  });
 
   // ── Advisor ──────────────────────────────────────────────────────────────
   const advisor = await prisma.advisor.upsert({
@@ -78,13 +96,14 @@ async function main() {
   // ── Buyer user ────────────────────────────────────────────────────────────
   const buyerUser = await prisma.user.upsert({
     where: { email: "ingrid.haugen@example.com" },
-    update: {},
+    update: { passwordHash: buyerHash, role: "BUYER" },
     create: {
       email: "ingrid.haugen@example.com",
       name: "Ingrid Haugen",
       phone: "+47 911 22 333",
       locale: "nb",
-      passwordHash: DEMO_PASSWORD_HASH,
+      role: "BUYER",
+      passwordHash: buyerHash,
     },
   });
 
@@ -167,7 +186,8 @@ async function main() {
     ],
   });
 
-  console.log(`✅  Seeded buyer: ${buyerUser.email}`);
+  console.log(`✅  Builder login: builder@kraggruppen.no / ${BUILDER_PASSWORD}`);
+  console.log(`✅  Buyer login:   ingrid.haugen@example.com / ${BUYER_PASSWORD}`);
   console.log(`   Project: ${justnes.nameNo} — Unit ${unitB7.label}`);
   console.log(`   Advisor: ${advisor.name}`);
   console.log("🌱  Done.");

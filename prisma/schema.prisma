@@ -19,6 +19,7 @@ model User {
   name          String
   phone         String?
   locale        String    @default("nb")
+  role          String    @default("BUYER")   // "BUYER" | "BUILDER"
   passwordHash  String?
   bankIdSub     String?   @unique
   vippsSub      String?   @unique

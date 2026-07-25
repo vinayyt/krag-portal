@@ -2,7 +2,8 @@
 
 import React, { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -18,35 +19,47 @@ export function AuthPage() {
 }
 
 function AuthPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations("auth");
-  const mode = (searchParams.get("mode") || "create") as "create" | "login";
+  const mode = (searchParams.get("mode") || "login") as "create" | "login";
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  const isNb = locale !== "en";
   const isCreate = mode === "create";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // Stub: simulate network delay then route
-    await new Promise((r) => setTimeout(r, 600));
-    router.push(isCreate ? `/${locale}/start` : `/${locale}/dashboard`);
+    setError("");
+
+    const result = await signIn("credentials", {
+      email: email.toLowerCase().trim(),
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError(isNb ? "Feil e-post eller passord." : "Incorrect email or password.");
+      setLoading(false);
+      return;
+    }
+
+    // Full page nav so middleware reads fresh JWT and redirects by role:
+    // BUYER → /dashboard, BUILDER → /admin
+    window.location.href = `/${locale}/dashboard`;
   }
 
   function handleBankID() {
-    // Phase 3: real BankID OIDC — for now simulate
-    router.push(isCreate ? `/${locale}/start` : `/${locale}/dashboard`);
+    setError(isNb ? "BankID-innlogging kommer snart." : "BankID login coming soon.");
   }
 
   function handleVipps() {
-    router.push(isCreate ? `/${locale}/start` : `/${locale}/dashboard`);
+    setError(isNb ? "Vipps-innlogging kommer snart." : "Vipps login coming soon.");
   }
 
   return (
@@ -263,46 +276,21 @@ function AuthPageContent() {
             <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
           </div>
 
-          {/* Email form */}
+          {/* Email/password form */}
           <form onSubmit={handleSubmit} noValidate>
             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
-              {isCreate && (
-                <Field
-                  label={t("name")}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ingrid Haugen"
-                  icon="people"
-                  autoComplete="name"
-                  required
-                  id="name"
-                />
-              )}
               <Field
                 label={t("email")}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="ingrid@example.no"
+                placeholder="post@example.no"
                 icon="mail"
                 autoComplete="email"
                 required
                 id="email"
                 inputMode="email"
               />
-              {isCreate && (
-                <Field
-                  label={t("phone")}
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="94 23 75 47"
-                  icon="phone"
-                  autoComplete="tel"
-                  id="phone"
-                  inputMode="tel"
-                />
-              )}
               <Field
                 label={t("pass")}
                 type="password"
@@ -310,37 +298,28 @@ function AuthPageContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 icon="lock"
-                autoComplete={isCreate ? "new-password" : "current-password"}
+                autoComplete="current-password"
                 required
                 id="password"
               />
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              full
-              loading={loading}
-            >
-              {t("continue")}
+            {error && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 9, background: "#fef2f2", border: "1px solid #fca5a5", marginBottom: 16 }}>
+                <Icon name="x" size={14} style={{ color: "#dc2626", flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: "#dc2626" }}>{error}</span>
+              </div>
+            )}
+
+            <Button type="submit" variant="primary" size="lg" full loading={loading}>
+              {isNb ? "Logg inn" : "Log in"}
             </Button>
           </form>
 
-          {/* Terms */}
-          <p style={{ fontSize: 12.5, color: "var(--ink-3)", textAlign: "center", marginTop: 16, lineHeight: 1.5 }}>
-            {t("terms")}
-          </p>
-
-          {/* Mode toggle */}
-          <p style={{ fontSize: 14, color: "var(--ink-2)", textAlign: "center", marginTop: 24 }}>
-            {isCreate ? t("have") : t("no")}{" "}
-            <Link
-              href={`/${locale}/auth?mode=${isCreate ? "login" : "create"}`}
-              style={{ color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}
-            >
-              {isCreate ? t("login") : t("create")}
-            </Link>
+          <p style={{ fontSize: 12.5, color: "var(--ink-3)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
+            {isNb
+              ? "Har du ikke fått tilgang ennå? Kontakt din byggherre."
+              : "Don't have access yet? Contact your builder."}
           </p>
         </div>
       </div>

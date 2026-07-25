@@ -4,6 +4,7 @@ import { getMessages } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { AuthSessionProvider } from "@/components/providers/session-provider";
 
 const locales = ["nb", "en"];
 
@@ -35,7 +36,9 @@ export default async function LocaleLayout({
     <html lang={locale === "nb" ? "nb-NO" : "en"} data-brand="warm" suppressHydrationWarning>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider>{children}</ThemeProvider>
+          <AuthSessionProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </AuthSessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>
