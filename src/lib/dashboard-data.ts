@@ -77,6 +77,7 @@ export async function fetchDashboardData(userId: string): Promise<DashboardData 
     size: d.size,
     signed: d.signed,
     soon: d.soon,
+    fileUrl: d.fileUrl ?? null,
   }));
 
   // ── Meetings ─────────────────────────────────────────────────────────────────

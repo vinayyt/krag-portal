@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
     nameEn?: string;
     cat: string;
     signed?: boolean | null;
+    fileUrl?: string;
+    size?: string;
   } = await req.json();
 
   if (!body.buyerId || !body.nameNo || !body.cat) {
@@ -35,9 +37,10 @@ export async function POST(req: NextRequest) {
       cat: body.cat,
       dateNo,
       dateEn,
-      size: "—",
+      size: body.size ?? "—",
       signed: body.signed ?? null,
       soon: false,
+      fileUrl: body.fileUrl ?? null,
     },
   });
 

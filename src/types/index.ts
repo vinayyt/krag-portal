@@ -138,6 +138,7 @@ export type KragDocument = {
   size: string;
   signed: boolean | null; // true=signed, false=needs-signature, null=n-a
   soon?: boolean;
+  fileUrl?: string | null;
 };
 
 export type PhotoAlbum = {

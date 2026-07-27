@@ -56,6 +56,7 @@ export interface AdminDocument {
   size: string;
   signed: boolean | null;
   soon: boolean;
+  fileUrl: string | null;
 }
 
 export interface AdminMeeting {
@@ -134,6 +135,7 @@ export async function fetchAdminData(): Promise<AdminBuyer[]> {
       size: d.size,
       signed: d.signed,
       soon: d.soon,
+      fileUrl: d.fileUrl ?? null,
     })),
     meetings: b.meetings.map((m) => ({
       id: m.id,
