@@ -13,7 +13,7 @@ function fmtNOK(n: number) {
   return new Intl.NumberFormat("nb-NO", { style: "currency", currency: "NOK", maximumFractionDigits: 0 }).format(n);
 }
 
-export function PaymentsSection({ payments: initial, onBack, onSaved }: PaymentsSectionProps) {
+export function PaymentsSection({ payments: initial, onBack: _onBack, onSaved }: PaymentsSectionProps) {
   const [payments, setPayments] = useState<AdminPayment[]>(initial);
   const [toggling, setToggling] = useState<number | null>(null);
 
@@ -37,10 +37,7 @@ export function PaymentsSection({ payments: initial, onBack, onSaved }: Payments
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
-        <button onClick={onBack} style={backBtn}>← Tilbake</button>
-        <h2 style={sectionTitle}>Betalinger</h2>
-      </div>
+      <h2 style={sectionTitle}>Betalinger</h2>
 
       {/* Summary bar */}
       <div style={{ display: "flex", gap: 20, marginBottom: 24, flexWrap: "wrap" }}>

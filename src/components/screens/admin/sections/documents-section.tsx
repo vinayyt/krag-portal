@@ -146,13 +146,14 @@ function UploadZone({ onFile, preview, fileName, onClear }: {
 
 const EMPTY_NEW = { nameNo: "", nameEn: "", cat: "contract", signed: "null" };
 
-export function DocumentsSection({ buyerId, documents: initial, onBack, onSaved }: DocumentsSectionProps) {
+export function DocumentsSection({ buyerId, documents: initial, onBack: _onBack, onSaved }: DocumentsSectionProps) {
   const [docs, setDocs]           = useState<AdminDocument[]>(initial);
   const [showAdd, setShowAdd]     = useState(false);
   const [newForm, setNewForm]     = useState(EMPTY_NEW);
   const [newFile, setNewFile]     = useState<File | null>(null);
   const [newPreview, setNewPreview] = useState<string | null>(null);
   const [adding, setAdding]       = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [lightbox, setLightbox]   = useState<string | null>(null);
 
   // Per-row edit state
@@ -184,10 +185,16 @@ export function DocumentsSection({ buyerId, documents: initial, onBack, onSaved 
   async function addDoc() {
     if (!newForm.nameNo) return;
     setAdding(true);
+    setUploadError(null);
     let fileUrl: string | undefined, size = "—";
     if (newFile) {
       const up = await uploadFile(newFile);
-      if (up) { fileUrl = up.url; size = up.size; }
+      if (!up) {
+        setUploadError("Filen ble ikke lastet opp. Sjekk at Vercel Blob er aktivert i prosjektinnstillingene dine, eller fjern filen og lagre uten.");
+        setAdding(false);
+        return;
+      }
+      fileUrl = up.url; size = up.size;
     }
     const res = await fetch("/api/admin/documents", {
       method: "POST",
@@ -206,11 +213,17 @@ export function DocumentsSection({ buyerId, documents: initial, onBack, onSaved 
   // ── Save edits ─────────────────────────────────────────────────────────────
   async function saveEdit(doc: AdminDocument) {
     setSaving(true);
+    setUploadError(null);
     let fileUrl = doc.fileUrl;
     let size = doc.size;
     if (editFile) {
       const up = await uploadFile(editFile);
-      if (up) { fileUrl = up.url; size = up.size; }
+      if (!up) {
+        setUploadError("Filen ble ikke lastet opp. Sjekk Vercel Blob-konfigurasjonen.");
+        setSaving(false);
+        return;
+      }
+      fileUrl = up.url; size = up.size;
     }
     const res = await fetch(`/api/admin/documents/${doc.id}`, {
       method: "PATCH",
@@ -252,14 +265,22 @@ export function DocumentsSection({ buyerId, documents: initial, onBack, onSaved 
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button onClick={onBack} style={backBtn}>← Tilbake</button>
-        <h2 style={sectionTitle}>Dokumenter</h2>
-        <span style={{ marginLeft: 8, fontSize: 13, color: "var(--ink-3)", fontWeight: 400 }}>({docs.length})</span>
-        <button onClick={() => { setShowAdd((v) => !v); setEditId(null); }} style={{ marginLeft: "auto", ...primaryBtn }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+        <h2 style={{ ...sectionTitle, margin: 0 }}>Dokumenter</h2>
+        <span style={{ fontSize: 13, color: "var(--ink-3)" }}>({docs.length})</span>
+        <button onClick={() => { setShowAdd((v) => !v); setEditId(null); setUploadError(null); }} style={{ marginLeft: "auto", ...primaryBtn }}>
           {showAdd ? "Avbryt" : "+ Last opp dokument"}
         </button>
       </div>
+
+      {/* Upload error banner */}
+      {uploadError && (
+        <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 9, background: "#fef2f2", border: "1px solid #fca5a5", fontSize: 13, color: "#dc2626", display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <span style={{ flexShrink: 0 }}>⚠</span>
+          <span>{uploadError}</span>
+          <button onClick={() => setUploadError(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 16 }}>×</button>
+        </div>
+      )}
 
       {/* ── ADD FORM ── */}
       {showAdd && (

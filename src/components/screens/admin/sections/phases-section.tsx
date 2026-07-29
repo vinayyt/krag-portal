@@ -12,7 +12,7 @@ interface PhasesSectionProps {
 
 const STATUS_OPTIONS = ["upcoming", "active", "done"];
 
-export function PhasesSection({ buyerId: _buyerId, phases: initial, onBack, onSaved }: PhasesSectionProps) {
+export function PhasesSection({ buyerId: _buyerId, phases: initial, onBack: _onBack, onSaved }: PhasesSectionProps) {
   const [phases, setPhases] = useState<AdminPhase[]>(initial);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -46,10 +46,7 @@ export function PhasesSection({ buyerId: _buyerId, phases: initial, onBack, onSa
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
-        <button onClick={onBack} style={backBtn}>← Tilbake</button>
-        <h2 style={sectionTitle}>Byggefremdrift</h2>
-      </div>
+      <h2 style={sectionTitle}>Byggefremdrift</h2>
       <p style={{ fontSize: 14, color: "var(--ink-3)", marginBottom: 24 }}>
         Oppdater prosentandel og status for hver fase. Lagre endringer per rad.
       </p>

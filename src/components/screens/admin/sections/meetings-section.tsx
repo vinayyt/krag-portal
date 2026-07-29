@@ -31,7 +31,7 @@ function formatDateForDisplay(isoDate: string, lang: "nb" | "en") {
   }
 }
 
-export function MeetingsSection({ buyerId, meetings: initial, onBack, onSaved }: MeetingsSectionProps) {
+export function MeetingsSection({ buyerId, meetings: initial, onBack: _onBack, onSaved }: MeetingsSectionProps) {
   const [meetings, setMeetings] = useState<AdminMeeting[]>(initial);
   const [form, setForm] = useState(EMPTY_FORM);
   const [adding, setAdding] = useState(false);
@@ -93,12 +93,8 @@ export function MeetingsSection({ buyerId, meetings: initial, onBack, onSaved }:
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
-        <button onClick={onBack} style={backBtn}>← Tilbake</button>
-        <h2 style={sectionTitle}>Møter</h2>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          style={{ marginLeft: "auto", ...primaryBtn }}
-        >
+        <h2 style={{ ...sectionTitle, margin: 0 }}>Møter</h2>
+        <button onClick={() => setShowForm((v) => !v)} style={{ marginLeft: "auto", ...primaryBtn }}>
           + Legg til møte
         </button>
       </div>

@@ -11,7 +11,7 @@ interface MessagesSectionProps {
   onSaved: () => void;
 }
 
-export function MessagesSection({ buyerId, buyerName, messages: initial, onBack, onSaved }: MessagesSectionProps) {
+export function MessagesSection({ buyerId, buyerName, messages: initial, onBack: _onBack, onSaved }: MessagesSectionProps) {
   const [messages, setMessages] = useState<AdminMessage[]>(initial);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -53,7 +53,6 @@ export function MessagesSection({ buyerId, buyerName, messages: initial, onBack,
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 200px)", minHeight: 500 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexShrink: 0 }}>
-        <button onClick={onBack} style={backBtn}>← Tilbake</button>
         <h2 style={sectionTitle}>Meldinger</h2>
         <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--ink-3)" }}>
           Samtale med {buyerName}
@@ -129,5 +128,4 @@ export function MessagesSection({ buyerId, buyerName, messages: initial, onBack,
   );
 }
 
-const backBtn: React.CSSProperties = { fontSize: 13, color: "var(--ink-3)", background: "none", border: "none", cursor: "pointer", padding: "4px 0" };
 const sectionTitle: React.CSSProperties = { fontSize: 22, fontWeight: 700, color: "var(--ink)", margin: 0 };
